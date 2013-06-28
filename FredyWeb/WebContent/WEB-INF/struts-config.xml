@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.1//EN" "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">
+<struts-config>
+
+  <form-beans>
+    <form-bean name="postulateForm" type="org.mmarini.fredy.control.PostulateForm" />
+  </form-beans>
+
+  <global-exceptions>
+    <exception type="java.lang.Exception" key="message.error.general" path="error.page" handler="org.mmarini.fredy.control.ExceptionHandler"/>
+  </global-exceptions>
+
+  <global-forwards>
+  </global-forwards>
+
+  <action-mappings>
+    <action path="/index" type="org.apache.struts.actions.ForwardAction" parameter="/newAnalisys.do"/>
+    
+    <action path="/newAnalisys" name="postulateForm" type="org.mmarini.fredy.control.NewAction">
+      <forward name="success" path="/processPostulate.do" />
+    </action>
+
+    <action path="/processPostulate" name="postulateForm" type="org.mmarini.fredy.control.ProcessPostulateAction">
+      <forward name="success" path="/show.do" />
+    </action>
+
+    <action path="/changePage" parameter="action" name="postulateForm" type="org.mmarini.fredy.control.ChangePageAction">
+      <forward name="success" path="/show.do" />
+    </action>
+
+    <action path="/show" name="postulateForm" type="org.mmarini.fredy.control.ShowAction">
+      <forward name="success" path="interaction.page" />
+    </action>
+  </action-mappings>
+
+<!--
+  <plug-in className="org.apache.struts.validator.ValidatorPlugIn">
+    <set-property property="pathnames" value="/WEB-INF/validator-rules.xml,/WEB-INF/validation.xml" />
+  </plug-in>
+-->
+
+  <plug-in className="org.apache.struts.tiles.TilesPlugin">
+    <set-property property="definitions-config" value="/WEB-INF/tiles-defs.xml" />
+    <set-property property="definitions-parser-validate" value="true" />
+    <set-property property="moduleAware" value="true" />
+  </plug-in>
+
+</struts-config>

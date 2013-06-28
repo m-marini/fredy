@@ -1,0 +1,14 @@
+body {  font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 10px; background-color: #FFFFFF}
+.false {  background-color: #FFCCCC}
+.true {  background-color: #CCFFCC}
+.unknown {  background-color: #F0F0F0}
+.errors {  background-color: #FF0000}
+.menu {  font-size: 12px; font-weight: bold; background-color: #209E9E; color: #FFFFFF}
+.testo {  font-size: 10px}
+td {  font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 10px}
+th {  font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 10px}
+select { font-size: 10px ; font-family: Verdana, Geneva, Arial, Helvetica, sans-serif}
+.wintitle {  font-size: 12px; font-weight: bold; background-color: #209E9E; color: #FFFFFF}
+.title {  font-size: 10px; font-weight: bold}
+.button { font-family: Verdana, Geneva, Arial, Helvetica, sans-serif; font-size: 10px; font-weight: bold; color: #000000; background-color: #209E9E }
+.map {  border: #000000; border-style: solid; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px}

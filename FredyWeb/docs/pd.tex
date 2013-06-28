@@ -1,0 +1,323 @@
+\documentclass{article}
+\begin{document}
+  \title{Pesi determinanti \thanks{\$Id: pd.tex,v 1.3 2004/12/24 14:50:17 marco Exp $ $}}
+  \author{Marco Marini}
+  \maketitle
+  
+  \part{Definizioni}
+  \section{Postulati}
+  
+  I postulati sono i predicati non dimostrabili.
+  Nella rete inferenziale delle regole sono i nodi finali
+  
+  \section{Evidenze}
+  
+  Le evidenze sono i predicati dimostrabili.
+  Nella rete inferenziale delle regole sono i nodi intermedi.
+  
+  \section{Ipotesi}
+  
+  Le ipotesi sono i predicati che non portano a conseguenze.
+  Nella rete inferenziale delle regole sono i nodi radice.
+
+  \section{Pesi determinanti}
+  
+  Per ogni predicato possiamo definire l'attributo di peso determinante.
+
+  Il peso determinante $P=(p_0,c_0,p_1,c_1)$ \`e un indicatore
+  legato alla capacit\`a del  predicato di determinare le ipotesi.
+  
+  Il peso determinante \`e caratterizzato da quattro valori:
+  
+  \begin{itemize}
+  
+  \item
+    $p_{0}$ Peso determinante falso
+    
+    E' il numero massimo di ipotesi determinabili per il valore falso
+    
+  \item
+    $c_{0}$ Condizioni del falso
+    
+    E' il numero di condizioni per ottenere il numero massimo di ipotesi per il
+    valore falso
+    
+  \item
+    $p_{1}$ Peso determinante vero
+    
+    E' il numero massimo di ipotesi determinabili per il valore vero
+    
+  \item
+    $c_{1}$ Condizioni del vero
+    
+    E' il numero di condizioni per ottenere il numero massimo di ipotesi per il
+    valore vero
+    
+  \end{itemize}
+  
+  \part{Funzioni dei nodi del peso determinante}
+  
+  Determiniamo le funzioni che esprimono come il peso determinante si propaga
+  nella rete inferenziale.
+  
+  \section{Ipotesi}
+  
+  Il nodo ipotesi \`e il nodo di partenza per l'esplorazione della rete.
+  
+  Essendo l'ipotesi incondizionatamente determinante solo per se stessa il peso
+  determiante dell'ipotesi \`e:
+  
+  \begin{equation}
+      p_0=1, c_0=0, p_1=1, c_1=0
+  \end{equation}
+
+  nel caso in cui l'ipotesi sia conosciuta il peso determinante � nullo.
+  
+  \begin{equation}
+      p_0=0, c_0=0, p_1=0, c_1=0
+  \end{equation}
+
+  \section{Then-Assign}
+  
+  Then-Assign sono i nodi che assegnano il valore vero da una regola
+  if-then-else per condizione vera.
+  
+  In questo caso l'evidenza pu\`o solamente essere verificata
+  incondizionatamente se l'espressione if \`e vera, quindi se $P_e$ \`e il peso
+  determinante dell'evidenza, il peso determinante dell'espressione if \`e:
+  
+  \begin{equation}
+    p_{i0}=0, c_{i0}=0, p_{i1}=p_{e1}, c_{i1}=c_{e1}
+  \end{equation}
+  
+  \section{Then-Not-Assign}
+  
+  Then-Not-Assign sono i nodi che assegnano il valore false da una regola
+  if-then-else per condizione vera.
+  
+  In questo caso l'evidenza pu\`o solamente essere falsificata
+  incondizionatamente se l'espressione if \`e vera, quindi se $P_e$ \`e il peso
+  determinante dell'evidenza, il peso determinante dell'espressione if \`e:
+  
+  \begin{equation}
+    p_{i0}=0, c_{i0}=0, p_{i1}=p_{e0}, c_{i1}=c_{e0}
+  \end{equation}
+  
+  \section{Else-Assign}
+  
+  Else-Assign sono i nodi che assegnano il valore vero da una regola
+  if-then-else per condizione falsa.
+  
+  In questo caso l'evidenza pu\`o solamente essere verificata
+  incondizionatamente se l'espressione if \`e false, quindi se $P_e$ \`e il
+  peso determinante dell'evidenza, il peso determinante dell'espressione if
+  \`e:
+  
+  \begin{equation}
+      p_{i0}=p_{e1}, c_{i0}=c_{e1}, p_{i1}=0, c_{i1}=0
+  \end{equation}
+  
+  \section{Else-Not-Assign}
+  
+  Else-Not-Assign sono i nodi che assegnano il valore false da una regola
+  if-then-else per condizione falsa.
+  
+  In questo caso l'evidenza pu\`o solamente essere falsificata
+  incondizionatamente se l'espressione if \`e false, quindi se $P_e$ \`e il
+  peso determinante dell'evidenza, il peso determinante dell'espressione if
+  \`e:
+  
+  \begin{equation}
+      p_{i0}=p_{e0}, c_{i0}=c_{e0}, p_{i1}=0, c_{i1}=0
+  \end{equation}
+  
+  \section{Not}
+  
+  Not sono i nodi che negano un espressione.
+  
+  Se $P_o$ \`e il peso determinante dell'espressione risultante e $P_i$ il
+  peso determinante dell'espressione originale abbiamo:
+  
+  \begin{equation}
+    p_{i0}=p_{o1}, c_{i0}=c_{o0}, p_{i1}=p_{o0}, c_{i1}=c_{o0}
+  \end{equation}
+  
+  \section{Very e Somewhat}
+  
+  Very e Somewhat sono nodi che cambiano in maniera pi\`u o meno marcata i
+  valori
+  di un'espressione senza per\`o modificare il senso e quindi non modificano i
+  pesi determinanti.
+  
+  \section{Known}
+    
+  Known sono i nodi che calcolano il grado di determinanzione di un espressione.
+  Il valore risultante  \`e vero se il valore originale \`e vero o falso.
+  
+  \begin{equation}
+    p_{i0}=p_{o1}, c_{i0}=c_{o1}, p_{i1}=p_{o1}, c_{i1}=c_{o1}
+  \end{equation}
+    
+  \section{And}
+    
+  And sono i nodi che calcolano l'intersezione logica dei valori di ingresso.
+  Il valore risultante \`e falso se uno qualsiasi dei valori d'ingressp \`e
+  falso.
+  
+  Il Valore risultate \`e vero se tutti i valori d'ingresso sono veri
+  Quindi i pesi determinanti degli ingressi dipendono quindi dai valori
+  d'ingresso. In particolare abbiamo due casi:
+  
+  \begin{enumerate}
+    \item Almeno un ingresso falso.
+      
+      In questo caso il peso determinante \`e nullo
+    \item $M$ ingressi indeterminati e $N-M$ ingressi veri
+      
+      In questo caso il peso determinante \`e:
+      \begin{equation}
+	p_{i0}=p_{e0}, c_{i0}=c_{e0}, p_{i1}=p_{e1}, c_{i1}=c_{e1}+M-1
+      \end{equation}
+    \item
+  \end{enumerate}
+  
+  \section{Or}
+  
+  Or sono i nodi che calcolano l'unione logica dei valori di ingresso.
+  Il valore risultante \`e vero se uno qualsiasi dei valori d'ingresso \`e
+  vero.
+  
+  Il Valore risultate \`e falso se tutti i valori d'ingresso sono falsi
+  Quindi i pesi determinanti degli ingressi dipendono quindi dai valori
+  d'ingresso. In particolare abbiamo due casi:
+  
+  \begin{enumerate}
+    \item Almeno un ingresso vero.
+      
+      In questo caso il peso determinante \`e nullo
+    \item $M$ ingressi indeterminati e $N-M$ ingressi falsi
+      
+      In questo caso il peso determinante \`e:
+      \begin{equation}
+	p_{i0}=p_{e0}, c_{i0}=c_{e0}+M-1, p_{i1}=p_{e1}, c_{i1}=c_{e1}
+      \end{equation}
+  \end{enumerate}
+  
+  \section{IfOnlyIf}
+    
+  IfOnlyIf sono i nodi che sono veri se ambedue gli ingressi hanno lo stesso
+  valore.
+  
+  La tabella della verit\`a \`e:
+  
+\[
+    \begin{array}{llll}
+      & A& 0 & 1
+      \\
+      B& 0 & 1 & 0
+      \\
+      & 1 & 0 & 1
+    \end{array}
+\]
+ 
+  Abbiamo allora due casi:
+  \begin{enumerate}
+    \item l'altro ingresso \`e falso
+ 
+      Il peso determinante \`e:
+      \begin{equation}
+	p_{i0}=p_{e1}, c_{i0}=c_{e1}, p_{i1}=p_{e0}, c_{i1}=c_{e0}
+      \end{equation}
+
+    \item l'altro ingresso \`e vero
+ 
+      Il peso determinante \`e:
+      \begin{equation}
+	p_{i0}=p_{e0}, c_{i0}=c_{e0}, p_{i1}=p_{e1}, c_{i1}=c_{e1}
+      \end{equation}
+
+    \item l'altro ingresso \`e sconosciuto
+ 
+      Il peso determinante \`e:
+      \begin{equation}
+	  p_{i0}=min(p_{e0},p_{e1}), c_{i0}=(p_{e0}< p_{e1} ? c_{e0} : c_{e1})+1,
+	  p_{i1}=p_{i0}, c_{i1}=c_{i0}
+      \end{equation}
+
+  \end{enumerate}
+  
+  \section{Implies}
+  
+  Implies sono i nodi che sono falsi se il primo parametro \`e vero e il
+  secondo \`e falso.
+  La tabella della verit\`a \`e:
+  
+  \[
+    \begin{array}{llll}
+      & A& 0 & 1
+      \\
+      B& 0 & 1 & 0
+      \\
+      & 1 & 1 & 1
+    \end{array}
+  \]
+  
+  Per il primo parametero abbiamo allora i tre casi:
+  \begin{enumerate}
+    \item il secondo parametro \`e falso
+ 
+      Il peso determinante del primo parametro \`e:
+      \begin{equation}
+	p_{i0}=p_{e1}, c_{i0}=c_{e1}, p_{i1}=p_{e0},c_{i1}=c_{e0}
+      \end{equation}
+
+    \item il secondo parametro \`e vero
+      
+      Il peso determinante del primo parametro \`e nullo:
+      
+    \item il secondo parametro \`e sconosciuto
+ 
+      Il peso determinante del primo parametro \`e:
+      
+      \begin{equation}
+	p_{i0}=min(p_{e0},p_{e1}), c_{i0}=p_{e0}< p_{e1} ? c_{e0}+1 : c_{e1} + 1,
+	  p_{i1}=p_{i0}, c_{i1}=c_{i0}
+      \end{equation}
+
+  \end{enumerate}
+  
+  Per il secondo parametero abbiamo allora i tre casi:
+  \begin{enumerate}
+    \item il primo parametro \`e falso
+ 
+      Il peso determinante del secondo parametro \`e nullo.
+
+    \item il primo parametro \`e vero
+      
+      \begin{equation}
+	p_{i0}=p_{e0}, c_{i0}=c_{e0}, p_{i1}=p_{e1}, c_{i1}=c_{e1}
+      \end{equation}
+
+    \item il primo parametro \`e sconosciuto
+ 
+      Il peso determinante del secondo parametro \`e:      
+      \begin{equation}
+	p_{i0}=min(p_{e0},p_{e1}), c_{i0}=p_{e0}< p_{e1} ? c_{e0} : c_{e1} + 1,
+	p_{i1}=p_{e1}, c_{i1}=c_{e1}
+      \end{equation}
+
+  \end{enumerate}
+
+  \section{Ordinamento dei postulati}
+  
+  L'ordinamento dei postulati avviene mettendo per primi i postulati con grado
+  di conoscenza nulla (unknown) e con peso determinante massimo maggiore
+  $max(P_0,P_1)$,
+  
+  a parit\`a di peso determinante massimo maggiore quelli con condizioni
+  massime minori $P_0 > P_1 ? C_0 : C_1$ ,
+  
+  poi i postulati in ordine crescenze di conoscenza (known) e a parid\`a di
+  conoscenza quelli con grado di verit� maggiore.
+  
+\end{document}

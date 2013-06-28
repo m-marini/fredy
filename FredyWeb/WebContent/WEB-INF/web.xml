@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+                         "http://java.sun.com/dtd/web-app_2_3.dtd">
+<web-app>
+    <context-param>
+        <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+        <param-value>org.mmarini.fredy.control.Messages</param-value>
+    </context-param>
+    <servlet>
+        <servlet-name>action</servlet-name>
+        <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+        <init-param>
+            <param-name>application</param-name>
+            <param-value>org.mmarini.fredy.control.Messages</param-value>
+        </init-param>
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>/WEB-INF/struts-config.xml</param-value>
+        </init-param>
+        <init-param>
+            <param-name>debug</param-name>
+            <param-value>2</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>action</servlet-name>
+        <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+    <taglib>
+        <taglib-uri>http://jakarta.apache.org/struts/tags-html</taglib-uri>
+        <taglib-location>struts-html.tld</taglib-location>
+    </taglib>
+    <taglib>
+        <taglib-uri>http://jakarta.apache.org/struts/tags-tiles</taglib-uri>
+        <taglib-location>struts-tiles.tld</taglib-location>
+    </taglib>
+    <taglib>
+        <taglib-uri>http://java.sun.com/jstl/core</taglib-uri>
+        <taglib-location>c.tld</taglib-location>
+    </taglib>
+    <taglib>
+        <taglib-uri>http://java.sun.com/jstl/fmt</taglib-uri>
+        <taglib-location>fmt.tld</taglib-location>
+    </taglib>
+</web-app>
