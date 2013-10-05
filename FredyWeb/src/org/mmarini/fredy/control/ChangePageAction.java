@@ -8,7 +8,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.actions.DispatchAction;
-import org.mmarini.fuzzy.handlers.SessionHandler;
+import org.mmarini.fredy.handlers.SessionHandler;
 
 /**
  * @author US00852

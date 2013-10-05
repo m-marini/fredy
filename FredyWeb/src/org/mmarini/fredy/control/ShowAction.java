@@ -11,8 +11,8 @@ import org.apache.struts.action.Action;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
+import org.mmarini.fredy.handlers.SessionHandler;
 import org.mmarini.fuzzy.IPredicate;
-import org.mmarini.fuzzy.handlers.SessionHandler;
 
 /**
  * @author US00852

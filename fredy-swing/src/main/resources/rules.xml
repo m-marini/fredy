@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rules
+	xmlns="http://www.mmarini.org/fuzzy"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mmarini.org/fuzzy rules.xsd">
+<!--
+	I rallentamenti sono dovuti a tempi alti di risposta.
+	Possono essere causati dal sistema non performante.
+	E' necessario individuare l'elemento che genera i rallentamenti
+	Gli elementi di sistema scatenanti possono essere:
+	http servers
+	application servers
+	problemi di rete
+	cics lento
+	ims lento
+	DB2 lento
+	Oracle lento
+	
+-->
+
+	<rule>
+		<if>
+			<and>
+				<predicate>rallentamentiGenerali</predicate>
+				<or>
+					<predicate>elapsedUrlWasNormali</predicate>
+					<predicate>counterUrlWasBassi</predicate>
+				</or>
+				<predicate>elapsedUrlHttpAlti</predicate>
+				<predicate>indicatoriCpuHttpAlti</predicate>
+			</and>
+		</if>
+		<then>
+			<assign>problemiCPUHttp</assign>
+		</then>
+		<else/>
+	</rule>
+
+	<rule>
+		<if>
+			<and>
+				<predicate>rallentamentiGenerali</predicate>
+				<or>
+					<predicate>elapsedUrlWasNormali</predicate>
+					<predicate>counterUrlWasBassi</predicate>
+				</or>
+				<predicate>elapsedUrlHttpAlti</predicate>
+				<predicate>indicatoriCpuHttpNormali</predicate>
+				<predicate>indicatoriReteHttpAlti</predicate>
+			</and>
+		</if>
+		<then>
+			<assign>problemiReteHttp</assign>
+		</then>
+		<else/>
+	</rule>
+
+	<rule>
+		<if>
+			<and>
+				<predicate>rallentamentiGenerali</predicate>
+				<or>
+					<predicate>elapsedUrlWasAlti</predicate>
+					<not>
+						<predicate>counterUrlWasAlti</predicate>
+					</not>
+				</or>
+				<predicate>elapsedUrlHttpNormali</predicate>
+				<predicate>elapsedCanaliNormali</predicate>
+				<predicate>indicatoriCpuWasAlti</predicate>
+			</and>
+		</if>
+		<then>
+			<assign>problemiCpuWas</assign>
+		</then>
+		<else/>
+	</rule>
+
+	<rule>
+		<if>
+			<and>
+				<predicate>rallentamentiGenerali</predicate>
+				<predicate>elapsedUrlWasAlti</predicate>
+				<predicate>indicatoriCpuWasNormali</predicate>
+				<predicate>indicatoriReteWasAlti</predicate>
+			</and>
+		</if>
+		<then>
+			<assign>problemiReteWas</assign>
+		</then>
+		<else/>
+	</rule>
+
+	<rule>
+		<if>
+			<and>
+				<predicate>rallentamentiGenerali</predicate>
+				<predicate>elapsedUrlWasAlti</predicate>
+				<predicate>indicatoriCpuWasNormali</predicate>
+				<predicate>indicatoriMemoriaWasAlti</predicate>
+				<predicate>indicatoriSwapWasAlti</predicate>
+				<predicate>indicatoriReteWasNormali</predicate>
+			</and>
+		</if>
+		<then>
+			<assign>problemiMemoriaWas</assign>
+		</then>
+		<else/>
+	</rule>
+
+	<rule>
+		<if>
+			<and>
+				<predicate>rallentamentiGenerali</predicate>
+				<predicate>elapsedUrlWasAlti</predicate>
+				<predicate>indicatoriCpuWasNormali</predicate>
+				<predicate>indicatoriMemoriaWasAlti</predicate>
+				<predicate>indicatoriSwapWasAlti</predicate>
+				<predicate>indicatoriReteWasNormali</predicate>
+			</and>
+		</if>
+		<then>
+			<assign>problemiMemoriaWas</assign>
+		</then>
+		<else/>
+	</rule>
+
+</rules>

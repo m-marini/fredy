@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://www.mmarini.org/fuzzy"
+	elementFormDefault="qualified" xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:r="http://www.mmarini.org/fuzzy">
+
+	<element name="rules" type="r:RulesType"></element>
+	<complexType name="RulesType">
+		<sequence maxOccurs="unbounded" minOccurs="0">
+			<element ref="r:rule"></element>
+		</sequence>
+	</complexType>
+	<element name="predicate" type="string"></element>
+	<element name="if" type="r:Expression"></element>
+	<element name="then" type="r:AssignList"></element>
+	<element name="else" type="r:AssignList"></element>
+	<element name="not" type="r:Expression"></element>
+	<element name="very" type="r:Expression"></element>
+	<element name="somewhat" type="r:Expression"></element>
+	<element name="known" type="r:Expression"></element>
+	<element name="or" type="r:ExpressionList"></element>
+	<element name="implies" type="r:ExpressionList"></element>
+	<element name="ifonlyif" type="r:ExpressionList"></element>
+	<element name="assign" type="string"></element>
+	<element name="assign-not" type="string"></element>
+	<element name="and" type="r:ExpressionList"></element>
+
+	<complexType name="Expression">
+		<sequence maxOccurs="1" minOccurs="1">
+			<group ref="r:ExpressionGroup"></group>
+		</sequence>
+	</complexType>
+
+	<complexType name="ExpressionList">
+		<sequence maxOccurs="unbounded" minOccurs="2">
+			<group ref="r:ExpressionGroup"></group>
+		</sequence>
+	</complexType>
+
+
+	<complexType name="AssignList">
+		<choice maxOccurs="unbounded" minOccurs="0">
+			<element ref="r:assign"></element>
+			<element ref="r:assign-not"></element>
+		</choice>
+	</complexType>
+
+	<element name="rule" type="r:RuleType"></element>
+
+	<complexType name="RuleType">
+		<sequence>
+			<element ref="r:if"></element>
+			<element ref="r:then"></element>
+			<element ref="r:else"></element>
+		</sequence>
+	</complexType>
+
+	<element name="true" type="r:True"></element>
+
+	<element name="false" type="r:True"></element>
+
+	<element name="unknown" type="r:True"></element>
+
+	<element name="quite-true" type="r:True"></element>
+
+	<element name="quite-false" type="r:True"></element>
+
+
+	<simpleType name="Confidence">
+		<restriction base="double">
+			<minInclusive value="0.0"></minInclusive>
+			<maxInclusive value="1.0"></maxInclusive>
+		</restriction>
+	</simpleType>
+
+
+	<complexType name="True">
+		<attribute name="confidence" type="r:Confidence" use="optional"></attribute>
+	</complexType>
+
+	<group name="ExpressionGroup">
+		<choice>
+			<element ref="r:false"></element>
+			<element ref="r:quite-false"></element>
+			<element ref="r:unknown"></element>
+			<element ref="r:quite-true"></element>
+			<element ref="r:true"></element>
+			<element ref="r:predicate"></element>
+			<element ref="r:not"></element>
+			<element ref="r:very"></element>
+			<element ref="r:somewhat"></element>
+			<element ref="r:known"></element>
+			<element ref="r:and"></element>
+			<element ref="r:or"></element>
+			<element ref="r:implies"></element>
+			<element ref="r:ifonlyif"></element>
+		</choice>
+	</group>
+
+</schema>
