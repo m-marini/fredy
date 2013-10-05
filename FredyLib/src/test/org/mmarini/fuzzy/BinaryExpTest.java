@@ -1,9 +1,13 @@
 package org.mmarini.fuzzy;
 
+import org.junit.Before;
+import org.junit.Test;
 import org.mmarini.fuzzy.Constant;
 import org.mmarini.fuzzy.FuzzyBoolean;
 import org.mmarini.fuzzy.Predicate;
 import org.mmarini.fuzzy.PredicateExpression;
+
+import static org.junit.Assert.*;
 
 /**
  * @author US00852
@@ -15,8 +19,8 @@ public class BinaryExpTest extends UnaryExpTest {
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	public void init() throws Exception {
+		super.init();
 		constants = new Constant[] { new Constant(), new Constant() };
 		predicates = new Predicate[] { new Predicate("A"), new Predicate("B") };
 		predicateExps = new PredicateExpression[] {
@@ -26,7 +30,7 @@ public class BinaryExpTest extends UnaryExpTest {
 				FuzzyBoolean.UNKNOWN } };
 	}
 
-	@Override
+	@Test
 	public void testEvaluate() {
 		for (int i = 0; i < values.length; ++i) {
 			constants[0].setValue(values[i][0]);

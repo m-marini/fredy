@@ -53,7 +53,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 *            the value
 	 */
 	public FuzzyBoolean(FuzzyBoolean value) {
-		this.value = value.getValue();
+		this.value = value.value;
 	}
 
 	/**
@@ -64,7 +64,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the and value
 	 */
 	public FuzzyBoolean and(FuzzyBoolean value) {
-		double exp = Math.min(this.getValue(), value.getValue());
+		double exp = Math.min(this.value, value.value);
 		return new FuzzyBoolean(exp);
 	}
 
@@ -73,13 +73,11 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 */
 	@Override
 	public int compareTo(FuzzyBoolean value) {
-		if (this.equals(value))
+		if (equals(value))
 			return 0;
-		double val1 = this.getValue();
-		double val2 = value.getValue();
-		if (val1 > val2)
+		if (this.value > value.value)
 			return 1;
-		if (val1 < val2)
+		if (this.value < value.value)
 			return -1;
 		return 0;
 	}
@@ -95,7 +93,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 			return false;
 		if (!(other instanceof FuzzyBoolean))
 			return false;
-		return this.getValue() == ((FuzzyBoolean) other).getValue();
+		return value == ((FuzzyBoolean) other).value;
 	}
 
 	/**
@@ -104,13 +102,13 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the description
 	 */
 	public String getDescription() {
-		if (this.isFalse())
+		if (isFalse())
 			return FALSE_DESCRIPTION;
-		else if (this.isQuiteFalse())
+		else if (isQuiteFalse())
 			return QUITE_FALSE_DESCRIPTION;
-		else if (this.isUnknown())
+		else if (isUnknown())
 			return UNKNOWN_DESCRIPTION;
-		else if (this.isQuiteTrue())
+		else if (isQuiteTrue())
 			return QUITE_TRUE_DESCRIPTION;
 		else
 			return TRUE_DESCRIPTION;
@@ -130,7 +128,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 */
 	@Override
 	public int hashCode() {
-		return new Double(this.getValue()).hashCode();
+		return new Double(value).hashCode();
 	}
 
 	/**
@@ -141,7 +139,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the ifonlyif value
 	 */
 	public FuzzyBoolean ifonlyif(FuzzyBoolean value) {
-		double exp = 1 - Math.abs(this.getValue() - value.getValue());
+		double exp = 1 - Math.abs(this.value - value.value);
 		return new FuzzyBoolean(exp);
 	}
 
@@ -153,7 +151,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the implies value
 	 */
 	public FuzzyBoolean implies(FuzzyBoolean value) {
-		double exp = Math.min(1 - this.getValue() + value.getValue(), 1.);
+		double exp = Math.min(1 - this.value + value.value, 1.);
 		return new FuzzyBoolean(exp);
 	}
 
@@ -163,7 +161,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return true if value is false
 	 */
 	public boolean isFalse() {
-		return this.getValue() <= 0.;
+		return value <= 0.;
 	}
 
 	/**
@@ -181,8 +179,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return true if value is quite false
 	 */
 	public boolean isQuiteFalse() {
-		double val = this.getValue();
-		return val > 0. && val <= 1. / 3.;
+		return value > 0. && value <= 1. / 3.;
 	}
 
 	/**
@@ -191,8 +188,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return true if value is quite true
 	 */
 	public boolean isQuiteTrue() {
-		double val = this.getValue();
-		return val > 2. / 3. && val < 1.;
+		return value > 2. / 3. && value < 1.;
 	}
 
 	/**
@@ -201,7 +197,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return true if value is quite true
 	 */
 	public boolean isTrue() {
-		return this.getValue() >= 1.;
+		return value >= 1.;
 	}
 
 	/**
@@ -210,8 +206,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return true if value is half true
 	 */
 	public boolean isUnknown() {
-		double val = this.getValue();
-		return val > 1. / 3. && val <= 2. / 3.;
+		return value > 1. / 3. && value <= 2. / 3.;
 	}
 
 	/**
@@ -220,7 +215,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the known value
 	 */
 	public FuzzyBoolean known() {
-		return new FuzzyBoolean(2 * Math.abs(this.getValue() - 0.5));
+		return new FuzzyBoolean(2 * Math.abs(value - 0.5));
 	}
 
 	/**
@@ -229,7 +224,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the negation
 	 */
 	public FuzzyBoolean not() {
-		return new FuzzyBoolean(1. - this.getValue());
+		return new FuzzyBoolean(1. - value);
 	}
 
 	/**
@@ -240,7 +235,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the or value
 	 */
 	public FuzzyBoolean or(FuzzyBoolean value) {
-		double exp = Math.max(this.getValue(), value.getValue());
+		double exp = Math.max(this.value, value.value);
 		return new FuzzyBoolean(exp);
 	}
 
@@ -250,7 +245,7 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the somewhat
 	 */
 	public FuzzyBoolean somewhat() {
-		return new FuzzyBoolean(Math.sqrt(this.getValue()));
+		return new FuzzyBoolean(Math.sqrt(value));
 	}
 
 	/**
@@ -258,12 +253,9 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 */
 	@Override
 	public String toString() {
-		StringBuffer value = new StringBuffer();
-		value.append(this.getDescription());
-		value.append("(");
-		value.append(this.getValue());
-		value.append(")");
-		return value.toString();
+		StringBuilder value = new StringBuilder();
+		return value.append(getDescription()).append("(").append(this.value)
+				.append(")").toString();
 	}
 
 	/**
@@ -272,7 +264,6 @@ public class FuzzyBoolean implements Serializable, Comparable<FuzzyBoolean> {
 	 * @return the very value
 	 */
 	public FuzzyBoolean very() {
-		double value = this.getValue();
 		return new FuzzyBoolean(value * value);
 	}
 }

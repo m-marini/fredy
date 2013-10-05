@@ -3,6 +3,9 @@
  */
 package org.mmarini.fuzzy;
 
+import org.junit.Test;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 import org.mmarini.fuzzy.Constant;
 import org.mmarini.fuzzy.FuzzyBoolean;
 import org.mmarini.fuzzy.Predicate;
@@ -24,8 +27,8 @@ public class UnaryExpTest extends AbstractExpressionTest {
 	 * @see junit.framework.TestCase#setUp()
 	 */
 	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	public void init() throws Exception {
+		super.init();
 		constants = new Constant[] { new Constant() };
 		predicates = new Predicate[] { new Predicate("A") };
 		predicateExps = new PredicateExpression[] { new PredicateExpression(
@@ -36,6 +39,14 @@ public class UnaryExpTest extends AbstractExpressionTest {
 				{ { FuzzyBoolean.TRUE }, { W00 } } };
 	}
 
+	@Test
+	public void testEvaluateFalse() {
+		constants[0].setValue(FuzzyBoolean.FALSE);
+		evalExpression.reset();
+		assertThat(evalExpression.evaluate(null), is(equalTo(W00)));
+	}
+
+	@Test
 	public void testEvaluate() {
 		for (int i = 0; i < values.length; ++i) {
 			constants[0].setValue(values[i][0]);

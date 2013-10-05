@@ -3,25 +3,18 @@ package org.mmarini.fuzzy;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.mmarini.fuzzy.AbstractExpression;
-import org.mmarini.fuzzy.FuzzyBoolean;
-import org.mmarini.fuzzy.IEvaluateContext;
-import org.mmarini.fuzzy.IExpressionVisitor;
-import org.mmarini.fuzzy.IPredicate;
-import org.mmarini.fuzzy.IScanContext;
-import org.mmarini.fuzzy.IWeightContext;
-import org.mmarini.fuzzy.Predicate;
-import org.mmarini.fuzzy.PredicateExpression;
-import org.mmarini.fuzzy.WeightCalculator;
+import org.junit.Before;
+import org.junit.Test;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author US00852
  * @version $Id: AbstractExpressionTest.java,v 1.2 2005/02/10 22:32:35 marco Exp
  *          $
  */
-public class AbstractExpressionTest extends TestCase {
+public class AbstractExpressionTest {
 	AbstractExpression equalsExpression1;
 	AbstractExpression equalsExpression2;
 	AbstractExpression acceptExpression;
@@ -31,13 +24,13 @@ public class AbstractExpressionTest extends TestCase {
 	Predicate hypotesys;
 	PredicateExpression[] predicateExps;
 	String expectedString;
-	Set predicateVisited = new HashSet();
+	Set<IPredicate> predicateVisited;
 	Object[][][] scanValues;
 	IEvaluateContext evalContext;
 
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void init() throws Exception {
+		predicateVisited = new HashSet<IPredicate>();
 		hypotesys = new Predicate("H");
 		evalContext = new IEvaluateContext() {
 
@@ -48,6 +41,7 @@ public class AbstractExpressionTest extends TestCase {
 		};
 	}
 
+	@Test
 	public void testAcceptIExpressionVisitor() {
 		acceptExpression.accept(new IExpressionVisitor() {
 
@@ -62,6 +56,7 @@ public class AbstractExpressionTest extends TestCase {
 	/*
 	 * Class under test for boolean equals(Object)
 	 */
+	@Test
 	public void testEqualsObject() {
 		assertTrue(equalsExpression1.equals(equalsExpression1));
 		assertFalse(equalsExpression1.equals(null));
@@ -72,6 +67,7 @@ public class AbstractExpressionTest extends TestCase {
 		assertTrue(equalsExpression1.hashCode() == equalsExpression2.hashCode());
 	}
 
+	@Test
 	public void testScan() {
 		for (int i = 0; i < scanValues.length; ++i) {
 			String testName = "Test " + i;
@@ -97,7 +93,8 @@ public class AbstractExpressionTest extends TestCase {
 		}
 	}
 
+	@Test
 	public void testToString() {
-		assertEquals(expectedString, acceptExpression.toString());
+		assertThat(acceptExpression.toString(), containsString(expectedString));
 	}
 }

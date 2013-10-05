@@ -1,5 +1,6 @@
 package org.mmarini.fuzzy;
 
+import org.junit.Before;
 import org.mmarini.fuzzy.FuzzyBoolean;
 import org.mmarini.fuzzy.Not;
 
@@ -7,15 +8,16 @@ import org.mmarini.fuzzy.Not;
  * @author US00852
  * @version $Id: NotTest.java,v 1.2 2005/02/10 22:32:35 marco Exp $
  */
-public class NotTest extends UnaryExpTest {
+public class NotTest {
 	static final String EXP_STRING = "not((A))";
+	private FuzzyBoolean[][] values;
+	private Object evalExpression;
 
 	/*
 	 * @see TestCase#setUp()
 	 */
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void init() {
 		values = new FuzzyBoolean[][] {
 				{ FuzzyBoolean.FALSE, FuzzyBoolean.FALSE.not() },
 				{ FuzzyBoolean.QUITE_FALSE, FuzzyBoolean.QUITE_FALSE.not() },

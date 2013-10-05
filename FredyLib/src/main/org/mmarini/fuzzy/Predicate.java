@@ -10,14 +10,16 @@ import java.io.Serializable;
  */
 public class Predicate implements IPredicate, Serializable {
 	private static final long serialVersionUID = 8656002102982259721L;
-	private FuzzyBoolean value = FuzzyBoolean.UNKNOWN;
+	private FuzzyBoolean value;
 	private String name;
-	private Weight weight = Weight.NULL_WEIGHT;
+	private Weight weight;
 
 	/**
 	 * 
 	 */
 	public Predicate() {
+		value = FuzzyBoolean.UNKNOWN;
+		weight = Weight.NULL_WEIGHT;
 	}
 
 	/**
@@ -27,6 +29,7 @@ public class Predicate implements IPredicate, Serializable {
 	 *            the name
 	 */
 	public Predicate(String name) {
+		this();
 		this.name = name;
 	}
 
@@ -34,16 +37,30 @@ public class Predicate implements IPredicate, Serializable {
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
-	public boolean equals(Object value) {
-		if (value == this)
+	public boolean equals(Object obj) {
+		if (this == obj)
 			return true;
-		if (value == null)
+		if (obj == null)
 			return false;
-		if (!(value instanceof Predicate))
+		if (getClass() != obj.getClass())
 			return false;
-		String name = this.getName();
-		return name == null ? ((Predicate) value).getName() == null : name
-				.equals(((Predicate) value).getName());
+		Predicate other = (Predicate) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (value == null) {
+			if (other.value != null)
+				return false;
+		} else if (!value.equals(other.value))
+			return false;
+		if (weight == null) {
+			if (other.weight != null)
+				return false;
+		} else if (!weight.equals(other.weight))
+			return false;
+		return true;
 	}
 
 	/**
@@ -79,11 +96,12 @@ public class Predicate implements IPredicate, Serializable {
 	 */
 	@Override
 	public int hashCode() {
-		int hashCode = 0;
-		Object obj = this.getName();
-		if (obj != null)
-			hashCode = name.hashCode();
-		return hashCode;
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		result = prime * result + ((weight == null) ? 0 : weight.hashCode());
+		return result;
 	}
 
 	/**
@@ -91,7 +109,7 @@ public class Predicate implements IPredicate, Serializable {
 	 */
 	@Override
 	public void reset() {
-		this.setValue(FuzzyBoolean.UNKNOWN);
+		value = FuzzyBoolean.UNKNOWN;
 	}
 
 	/**
@@ -106,10 +124,7 @@ public class Predicate implements IPredicate, Serializable {
 	}
 
 	/**
-	 * Sets the weight
-	 * 
-	 * @param weight
-	 *            the weight to set.
+	 * @see org.mmarini.fuzzy.IPredicate#setWeight(org.mmarini.fuzzy.Weight)
 	 */
 	@Override
 	public void setWeight(Weight weight) {
@@ -121,12 +136,9 @@ public class Predicate implements IPredicate, Serializable {
 	 */
 	@Override
 	public String toString() {
-		StringBuffer value = new StringBuffer();
-		value.append("Predicate(");
-		value.append(this.getName());
-		value.append(",");
-		value.append(this.getValue());
-		value.append(")");
-		return value.toString();
+		StringBuilder builder = new StringBuilder();
+		builder.append("Predicate [name=").append(name).append(", value=")
+				.append(value).append(", weight=").append(weight).append("]");
+		return builder.toString();
 	}
 }

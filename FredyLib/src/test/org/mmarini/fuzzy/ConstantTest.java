@@ -29,7 +29,7 @@ public class ConstantTest {
 	 * @see TestCase#setUp()
 	 */
 	@Before
-	public void init() throws Exception {
+	public void init() {
 		values = new FuzzyBoolean[] { FuzzyBoolean.FALSE,
 				FuzzyBoolean.QUITE_FALSE, FuzzyBoolean.UNKNOWN,
 				FuzzyBoolean.QUITE_TRUE, FuzzyBoolean.TRUE };

@@ -1,23 +1,24 @@
 package org.mmarini.fuzzy;
 
-import java.util.List;
-import java.util.Set;
-
-import org.mmarini.fuzzy.Analisys;
-import org.mmarini.fuzzy.Assign;
-import org.mmarini.fuzzy.FuzzyBoolean;
-import org.mmarini.fuzzy.IPredicate;
-import org.mmarini.fuzzy.PredicateExpression;
-import org.mmarini.fuzzy.Rule;
-import org.mmarini.fuzzy.Weight;
-
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItems;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import junit.framework.TestCase;
+
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author US00852
  * @version $Id: AnalisysTest.java,v 1.2 2005/02/10 22:32:35 marco Exp $
  */
-public class AnalisysTest extends TestCase {
+public class AnalisysTest {
 	static final FuzzyBoolean QUITE_TRUE = FuzzyBoolean.QUITE_TRUE;
 	static final FuzzyBoolean UNKNOWN = FuzzyBoolean.UNKNOWN;
 	static final FuzzyBoolean QUITE_FALSE = FuzzyBoolean.QUITE_FALSE;
@@ -45,9 +46,8 @@ public class AnalisysTest extends TestCase {
 	/**
 	 * @see TestCase#setUp()
 	 */
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void init() throws Exception {
 		values = new FuzzyBoolean[][] { { FALSE, FALSE, UNKNOWN },
 				{ FALSE, QUITE_FALSE, UNKNOWN }, { FALSE, UNKNOWN, UNKNOWN },
 				{ FALSE, QUITE_TRUE, QUITE_TRUE }, { FALSE, TRUE, TRUE },
@@ -103,6 +103,7 @@ public class AnalisysTest extends TestCase {
 		analisys.addRule(rule2);
 	}
 
+	@Test
 	public void testAnalize() {
 		for (int i = 0; i < values.length; ++i) {
 			String testName = "Test " + i + " " + values[i][0] + ","
@@ -111,72 +112,112 @@ public class AnalisysTest extends TestCase {
 			predicateB.setValue(values[i][1]);
 			analisys.reset();
 			analisys.analize();
-			assertEquals(testName, values[i][2], predicateC.getValue());
-
-			assertEquals(testName, weights[i][0], predicateA.getWeight());
-			assertEquals(testName, weights[i][1], predicateB.getWeight());
+			assertThat(testName, predicateC,
+					hasProperty("value", equalTo(values[i][2])));
+			assertThat(testName, predicateA,
+					hasProperty("weight", equalTo(weights[i][0])));
+			assertThat(testName, predicateB,
+					hasProperty("weight", equalTo(weights[i][1])));
 
 			testName = "Test " + i + " " + values[i][1] + "," + values[i][0];
 			predicateA.setValue(values[i][1]);
 			predicateB.setValue(values[i][0]);
 			analisys.reset();
 			analisys.analize();
-			assertEquals(testName, values[i][2], predicateC.getValue());
-
-			assertEquals(testName, weights[i][1], predicateA.getWeight());
-			assertEquals(testName, weights[i][0], predicateB.getWeight());
+			assertThat(testName, predicateC,
+					hasProperty("value", equalTo(values[i][2])));
+			assertThat(testName, predicateA,
+					hasProperty("weight", equalTo(weights[i][1])));
+			assertThat(testName, predicateB,
+					hasProperty("weight", equalTo(weights[i][0])));
 		}
-	} /*
+	}
+
+	/*
 	 * Class under test for boolean equals(Object)
 	 */
 
-	public void testEqualsObject() {
-		assertTrue(analisys1.equals(analisys1));
-		assertFalse(analisys1.equals(null));
-		assertFalse(analisys1.equals(new Object()));
+	@Test
+	public void testEqualsObject1() {
+		assertThat(analisys1.equals(analisys1), is(equalTo(true)));
+	}
 
-		assertTrue(analisys1.equals(analisys2));
-		assertTrue(analisys2.equals(analisys1));
-		assertTrue(analisys1.hashCode() == analisys2.hashCode());
+	@Test
+	public void testEqualsObject2() {
+		assertThat(analisys1.equals(null), is(equalTo(false)));
+	}
 
+	@Test
+	public void testEqualsObject3() {
+		assertThat(analisys1.equals(new Object()), is(equalTo(false)));
+	}
+
+	@Test
+	public void testEqualsObject4() {
+		assertThat(analisys1.equals(analisys2), is(equalTo(true)));
+	}
+
+	@Test
+	public void testEqualsObject5() {
+		assertThat(analisys2.equals(analisys1), is(equalTo(true)));
+	}
+
+	@Test
+	public void testEqualsObject6() {
+		assertThat(analisys1.hashCode() == analisys2.hashCode(),
+				is(equalTo(true)));
+	}
+
+	@Test
+	public void testEqualsObject8() {
 		analisys1.addPredicate(PREDICATE_A);
 		assertFalse(analisys1.equals(analisys2));
 		assertFalse(analisys2.equals(analisys1));
+	}
 
+	@Test
+	public void testEqualsObject9() {
+		analisys1.addPredicate(PREDICATE_A);
 		analisys2.addPredicate(PREDICATE_A);
 		assertTrue(analisys1.equals(analisys2));
 		assertTrue(analisys2.equals(analisys1));
 		assertTrue(analisys1.hashCode() == analisys2.hashCode());
+	}
 
+	@Test
+	public void testEqualsObject10() {
 		analisys1.addRule(rule1);
 		assertFalse(analisys1.equals(analisys2));
 		assertFalse(analisys2.equals(analisys1));
 
+	}
+
+	@Test
+	public void testEqualsObject7() {
+		analisys1.addRule(rule1);
 		analisys2.addRule(rule1);
 		assertTrue(analisys1.equals(analisys2));
 		assertTrue(analisys2.equals(analisys1));
 		assertTrue(analisys1.hashCode() == analisys2.hashCode());
 	}
 
+	@Test
 	public void testGetEvidence() {
-		Set evidence = analisys.getEvidence();
-		assertEquals(1, evidence.size());
-		assertTrue(evidence.contains(predicateC));
+		assertThat(analisys, hasProperty("evidence", hasItems(predicateC)));
 	}
 
+	@Test
 	public void testGetHypotesys() {
-		List hypotesis = analisys.getHypotesys();
-		assertEquals(1, hypotesis.size());
-		assertTrue(hypotesis.contains(predicateC));
+		assertThat(analisys, hasProperty("hypotesys", hasItems(predicateC)));
 	}
 
+	@Test
 	public void testGetPostulate() {
-		List postulate = analisys.getPostulate();
-		assertEquals(2, postulate.size());
-		assertTrue(postulate.contains(predicateA));
-		assertTrue(postulate.contains(predicateB));
+		assertThat(analisys,
+				hasProperty("postulate", hasItems(predicateA, predicateB)));
 	}
 
+	@Test
 	public void testGetPredicateString() {
 		assertNull(analisys.getPredicate(NO_PREDICATE));
 		assertEquals(predicateA, analisys.getPredicate(PREDICATE_A));

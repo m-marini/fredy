@@ -3,15 +3,17 @@
  */
 package org.mmarini.fuzzy;
 
-import org.mmarini.fuzzy.FuzzyBoolean;
+import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
 
-import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author US00852
  * @version $Id: FuzzyBooleanTest.java,v 1.2 2005/02/10 22:32:35 marco Exp $
  */
-public class FuzzyBooleanTest extends TestCase {
+public class FuzzyBooleanTest {
 
 	private static final String FALSE_STRING = FuzzyBoolean.FALSE_DESCRIPTION
 			+ "(0.0)";
@@ -43,9 +45,8 @@ public class FuzzyBooleanTest extends TestCase {
 	/*
 	 * @see TestCase#setUp()
 	 */
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void init() {
 		fuzzy = new FuzzyBoolean();
 		fuzzy1 = new FuzzyBoolean();
 		values = new FuzzyBoolean[] { FuzzyBoolean.FALSE,
@@ -124,6 +125,7 @@ public class FuzzyBooleanTest extends TestCase {
 				FuzzyBoolean.TRUE };
 	}
 
+	@Test
 	public void testAnd() {
 		int idx = 0;
 		for (int i = 0; i < values.length; ++i) {
@@ -139,6 +141,7 @@ public class FuzzyBooleanTest extends TestCase {
 		}
 	}
 
+	@Test
 	public void testCompareTo() {
 		for (int i = 0; i < values.length; ++i) {
 			if (i > 0)
@@ -155,6 +158,7 @@ public class FuzzyBooleanTest extends TestCase {
 	/*
 	 * Class under test for boolean equals(Object)
 	 */
+	@Test
 	public void testEqualsObject() {
 		assertTrue(fuzzy.equals(fuzzy));
 		assertFalse(fuzzy.equals(null));
@@ -186,13 +190,15 @@ public class FuzzyBooleanTest extends TestCase {
 	/*
 	 * Class under test for void FuzzyValue()
 	 */
+	@Test
 	public void testFuzzyValue() {
-		assertEquals(DEFAULT_VALUE, fuzzy.getValue(), EPSILON);
+		assertThat(fuzzy, hasProperty("value", closeTo(DEFAULT_VALUE, EPSILON)));
 	}
 
 	/*
 	 * Class under test for void FuzzyValue(double)
 	 */
+	@Test
 	public void testFuzzyValuedouble() {
 		for (int i = 0; i < values.length; ++i) {
 			FuzzyBoolean value = new FuzzyBoolean(values[i].getValue());
@@ -204,6 +210,7 @@ public class FuzzyBooleanTest extends TestCase {
 	/*
 	 * Class under test for void FuzzyValue(FuzzyValue)
 	 */
+	@Test
 	public void testFuzzyValueFuzzyValue() {
 		for (int i = 0; i < values.length; ++i) {
 			FuzzyBoolean value = new FuzzyBoolean(values[i]);
@@ -212,22 +219,47 @@ public class FuzzyBooleanTest extends TestCase {
 		}
 	}
 
-	/*
-	 * Class under test for String toString()
-	 */
-	public void testGetDescription() {
-		assertEquals(FuzzyBoolean.FALSE_DESCRIPTION,
-				FuzzyBoolean.FALSE.getDescription());
-		assertEquals(FuzzyBoolean.QUITE_FALSE_DESCRIPTION,
-				FuzzyBoolean.QUITE_FALSE.getDescription());
-		assertEquals(FuzzyBoolean.UNKNOWN_DESCRIPTION,
-				FuzzyBoolean.UNKNOWN.getDescription());
-		assertEquals(FuzzyBoolean.QUITE_TRUE_DESCRIPTION,
-				FuzzyBoolean.QUITE_TRUE.getDescription());
-		assertEquals(FuzzyBoolean.TRUE_DESCRIPTION,
-				FuzzyBoolean.TRUE.getDescription());
+	@Test
+	public void testGetDescriptionFalse() {
+		assertThat(
+				FuzzyBoolean.FALSE,
+				hasProperty("description",
+						equalTo(FuzzyBoolean.FALSE_DESCRIPTION)));
 	}
 
+	@Test
+	public void testGetDescriptionQuiteFalse() {
+		assertThat(
+				FuzzyBoolean.QUITE_FALSE,
+				hasProperty("description",
+						equalTo(FuzzyBoolean.QUITE_FALSE_DESCRIPTION)));
+	}
+
+	@Test
+	public void testGetDescriptionUnknown() {
+		assertThat(
+				FuzzyBoolean.UNKNOWN,
+				hasProperty("description",
+						equalTo(FuzzyBoolean.UNKNOWN_DESCRIPTION)));
+	}
+
+	@Test
+	public void testGetDescriptionQuiteTrue() {
+		assertThat(
+				FuzzyBoolean.QUITE_TRUE,
+				hasProperty("description",
+						equalTo(FuzzyBoolean.QUITE_TRUE_DESCRIPTION)));
+	}
+
+	@Test
+	public void testGetDescriptionTrue() {
+		assertThat(
+				FuzzyBoolean.TRUE,
+				hasProperty("description",
+						equalTo(FuzzyBoolean.TRUE_DESCRIPTION)));
+	}
+
+	@Test
 	public void testIfonlyif() {
 		int idx = 0;
 		for (int i = 0; i < values.length; ++i) {
@@ -245,6 +277,7 @@ public class FuzzyBooleanTest extends TestCase {
 		}
 	}
 
+	@Test
 	public void testImplies() {
 		int idx = 0;
 		for (int i = 0; i < values.length; ++i) {
@@ -259,81 +292,185 @@ public class FuzzyBooleanTest extends TestCase {
 		}
 	}
 
-	/*
-	 * Class under test for String toString()
-	 */
-	public void testIsFalse() {
-		assertTrue(FuzzyBoolean.FALSE.isFalse());
-		assertFalse(FuzzyBoolean.QUITE_FALSE.isFalse());
-		assertFalse(FuzzyBoolean.UNKNOWN.isFalse());
-		assertFalse(FuzzyBoolean.QUITE_TRUE.isFalse());
-		assertFalse(FuzzyBoolean.TRUE.isFalse());
+	@Test
+	public void testIsFalse1() {
+		assertThat(FuzzyBoolean.FALSE, hasProperty("false", equalTo(true)));
 	}
 
-	/*
-	 * Class under test for String toString()
-	 */
-	public void testIsHalfTrue() {
-		assertFalse(FuzzyBoolean.FALSE.isUnknown());
-		assertFalse(FuzzyBoolean.QUITE_FALSE.isUnknown());
-		assertTrue(FuzzyBoolean.UNKNOWN.isUnknown());
-		assertFalse(FuzzyBoolean.QUITE_TRUE.isUnknown());
-		assertFalse(FuzzyBoolean.TRUE.isUnknown());
+	@Test
+	public void testIsFalse2() {
+		assertThat(FuzzyBoolean.QUITE_FALSE,
+				hasProperty("false", equalTo(false)));
 	}
 
-	public void testIsKnown() {
-		assertTrue(FuzzyBoolean.FALSE.isKnown());
-		assertFalse(FuzzyBoolean.QUITE_FALSE.isKnown());
-		assertFalse(FuzzyBoolean.UNKNOWN.isKnown());
-		assertFalse(FuzzyBoolean.QUITE_TRUE.isKnown());
-		assertTrue(FuzzyBoolean.TRUE.isKnown());
+	@Test
+	public void testIsFalse3() {
+		assertThat(FuzzyBoolean.UNKNOWN, hasProperty("false", equalTo(false)));
 	}
 
-	/*
-	 * Class under test for String toString()
-	 */
-	public void testIsQuiteFalse() {
-		assertFalse(FuzzyBoolean.FALSE.isQuiteFalse());
-		assertTrue(FuzzyBoolean.QUITE_FALSE.isQuiteFalse());
-		assertFalse(FuzzyBoolean.UNKNOWN.isQuiteFalse());
-		assertFalse(FuzzyBoolean.QUITE_TRUE.isQuiteFalse());
-		assertFalse(FuzzyBoolean.TRUE.isQuiteFalse());
+	@Test
+	public void testIsFalse4() {
+		assertThat(FuzzyBoolean.QUITE_TRUE,
+				hasProperty("false", equalTo(false)));
 	}
 
-	/*
-	 * Class under test for String toString()
-	 */
-	public void testIsQuiteTrue() {
-		assertFalse(FuzzyBoolean.FALSE.isQuiteTrue());
-		assertFalse(FuzzyBoolean.QUITE_FALSE.isQuiteTrue());
-		assertFalse(FuzzyBoolean.UNKNOWN.isQuiteTrue());
-		assertTrue(FuzzyBoolean.QUITE_TRUE.isQuiteTrue());
-		assertFalse(FuzzyBoolean.TRUE.isQuiteTrue());
+	@Test
+	public void testIsFalse5() {
+		assertThat(FuzzyBoolean.TRUE, hasProperty("false", equalTo(false)));
 	}
 
-	/*
-	 * Class under test for String toString()
-	 */
-	public void testIsTrue() {
-		assertFalse(FuzzyBoolean.FALSE.isTrue());
-		assertFalse(FuzzyBoolean.QUITE_FALSE.isTrue());
-		assertFalse(FuzzyBoolean.UNKNOWN.isTrue());
-		assertFalse(FuzzyBoolean.QUITE_TRUE.isTrue());
-		assertTrue(FuzzyBoolean.TRUE.isTrue());
+	@Test
+	public void testIsHalfTrue1() {
+		assertThat(FuzzyBoolean.FALSE, hasProperty("unknown", equalTo(false)));
 	}
 
+	@Test
+	public void testIsHalfTrue2() {
+		assertThat(FuzzyBoolean.QUITE_FALSE,
+				hasProperty("unknown", equalTo(false)));
+	}
+
+	@Test
+	public void testIsHalfTrue3() {
+		assertThat(FuzzyBoolean.UNKNOWN, hasProperty("unknown", equalTo(true)));
+	}
+
+	@Test
+	public void testIsHalfTrue4() {
+		assertThat(FuzzyBoolean.QUITE_TRUE,
+				hasProperty("unknown", equalTo(false)));
+	}
+
+	@Test
+	public void testIsHalfTrue5() {
+		assertThat(FuzzyBoolean.TRUE, hasProperty("unknown", equalTo(false)));
+	}
+
+	@Test
+	public void testIsKnown1() {
+		assertThat(FuzzyBoolean.FALSE, hasProperty("known", equalTo(true)));
+	}
+
+	@Test
+	public void testIsKnown2() {
+		assertThat(FuzzyBoolean.QUITE_FALSE,
+				hasProperty("known", equalTo(false)));
+	}
+
+	@Test
+	public void testIsKnown3() {
+		assertThat(FuzzyBoolean.UNKNOWN, hasProperty("known", equalTo(false)));
+	}
+
+	@Test
+	public void testIsKnown4() {
+		assertThat(FuzzyBoolean.QUITE_TRUE,
+				hasProperty("known", equalTo(false)));
+	}
+
+	@Test
+	public void testIsKnown5() {
+		assertThat(FuzzyBoolean.TRUE, hasProperty("known", equalTo(true)));
+	}
+
+	@Test
+	public void testIsQuiteFalse1() {
+		assertThat(FuzzyBoolean.FALSE,
+				hasProperty("quiteFalse", equalTo(false)));
+	}
+
+	@Test
+	public void testIsQuiteFalse2() {
+		assertThat(FuzzyBoolean.QUITE_FALSE,
+				hasProperty("quiteFalse", equalTo(true)));
+	}
+
+	@Test
+	public void testIsQuiteFalse3() {
+		assertThat(FuzzyBoolean.UNKNOWN,
+				hasProperty("quiteFalse", equalTo(false)));
+	}
+
+	@Test
+	public void testIsQuiteFalse4() {
+		assertThat(FuzzyBoolean.QUITE_TRUE,
+				hasProperty("quiteFalse", equalTo(false)));
+	}
+
+	@Test
+	public void testIsQuiteFalse5() {
+		assertThat(FuzzyBoolean.TRUE, hasProperty("quiteFalse", equalTo(false)));
+	}
+
+	@Test
+	public void testIsQuiteTrue1() {
+		assertThat(FuzzyBoolean.FALSE, hasProperty("quiteTrue", equalTo(false)));
+	}
+
+	@Test
+	public void testIsQuiteTrue2() {
+		assertThat(FuzzyBoolean.QUITE_FALSE,
+				hasProperty("quiteTrue", equalTo(false)));
+	}
+
+	@Test
+	public void testIsQuiteTrue3() {
+		assertThat(FuzzyBoolean.UNKNOWN,
+				hasProperty("quiteTrue", equalTo(false)));
+	}
+
+	@Test
+	public void testIsQuiteTrue4() {
+		assertThat(FuzzyBoolean.QUITE_TRUE,
+				hasProperty("quiteTrue", equalTo(true)));
+	}
+
+	@Test
+	public void testIsQuiteTrue5() {
+		assertThat(FuzzyBoolean.TRUE, hasProperty("quiteTrue", equalTo(false)));
+	}
+
+	@Test
+	public void testIsTrue1() {
+		assertThat(FuzzyBoolean.FALSE, hasProperty("true", equalTo(false)));
+	}
+
+	@Test
+	public void testIsTrue2() {
+		assertThat(FuzzyBoolean.QUITE_FALSE,
+				hasProperty("true", equalTo(false)));
+	}
+
+	@Test
+	public void testIsTrue3() {
+		assertThat(FuzzyBoolean.UNKNOWN, hasProperty("true", equalTo(false)));
+	}
+
+	@Test
+	public void testIsTrue4() {
+		assertThat(FuzzyBoolean.QUITE_TRUE, hasProperty("true", equalTo(false)));
+	}
+
+	@Test
+	public void testIsTrue5() {
+		assertThat(FuzzyBoolean.TRUE, hasProperty("true", equalTo(true)));
+	}
+
+	@Test
 	public void testKnwon() {
 		for (int i = 0; i < values.length; ++i) {
 			assertEquals(values[i].toString(), knownExp[i], values[i].known());
 		}
 	}
 
+	@Test
 	public void testNot() {
 		for (int i = 0; i < values.length; ++i) {
 			assertEquals(values[i].toString(), notExp[i], values[i].not());
 		}
 	}
 
+	@Test
 	public void testOr() {
 		int idx = 0;
 		for (int i = 0; i < values.length; ++i) {
@@ -349,6 +486,7 @@ public class FuzzyBooleanTest extends TestCase {
 		}
 	}
 
+	@Test
 	public void testSomewhat() {
 		for (int i = 0; i < values.length; ++i) {
 			assertEquals(values[i].toString(), somewhatExp[i],
@@ -356,17 +494,34 @@ public class FuzzyBooleanTest extends TestCase {
 		}
 	}
 
-	/*
-	 * Class under test for String toString()
-	 */
-	public void testToString() {
-		assertEquals(FALSE_STRING, FuzzyBoolean.FALSE.toString());
-		assertEquals(QUITE_FALSE_STRING, FuzzyBoolean.QUITE_FALSE.toString());
-		assertEquals(HALF_STRING, FuzzyBoolean.UNKNOWN.toString());
-		assertEquals(QUITE_TRUE_STRING, FuzzyBoolean.QUITE_TRUE.toString());
-		assertEquals(TRUE_STRING, FuzzyBoolean.TRUE.toString());
+	@Test
+	public void testToStringFalse() {
+		assertThat(FuzzyBoolean.FALSE.toString(), containsString(FALSE_STRING));
 	}
 
+	@Test
+	public void testToStringQuiteFalse() {
+		assertThat(FuzzyBoolean.QUITE_FALSE.toString(),
+				containsString(QUITE_FALSE_STRING));
+	}
+
+	@Test
+	public void testToStringUnknown() {
+		assertThat(FuzzyBoolean.UNKNOWN.toString(), containsString(HALF_STRING));
+	}
+
+	@Test
+	public void testToStringQuiteTrue() {
+		assertThat(FuzzyBoolean.QUITE_TRUE.toString(),
+				containsString(QUITE_TRUE_STRING));
+	}
+
+	@Test
+	public void testToStringTrue() {
+		assertThat(FuzzyBoolean.TRUE.toString(), containsString(TRUE_STRING));
+	}
+
+	@Test
 	public void testVery() {
 		for (int i = 0; i < values.length; ++i) {
 			assertEquals(values[i].toString(), veryExp[i], values[i].very());
