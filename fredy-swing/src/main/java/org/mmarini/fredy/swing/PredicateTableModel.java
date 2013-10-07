@@ -3,8 +3,9 @@
  */
 package org.mmarini.fredy.swing;
 
-import java.util.List;
 import static org.mmarini.fredy.swing.MessagesUtils.format;
+
+import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -19,6 +20,7 @@ public class PredicateTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1714091983473406882L;
 	private String[] colName;
 	private List<PredicateValue> predicates;
+	private boolean editable;
 
 	/**
 	 * 
@@ -29,20 +31,16 @@ public class PredicateTableModel extends AbstractTableModel {
 	}
 
 	/**
-	 * 
-	 * @param values
-	 */
-	public void setPredicates(List<PredicateValue> values) {
-		predicates = values;
-		fireTableDataChanged();
-	}
-
-	/**
-	 * @see javax.swing.table.TableModel#getRowCount()
+	 * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
 	 */
 	@Override
-	public int getRowCount() {
-		return predicates != null ? predicates.size() : 0;
+	public Class<?> getColumnClass(int columnIndex) {
+		switch (columnIndex) {
+		case 1:
+			return FuzzyBoolean.class;
+		default:
+			return String.class;
+		}
 	}
 
 	/**
@@ -51,6 +49,29 @@ public class PredicateTableModel extends AbstractTableModel {
 	@Override
 	public int getColumnCount() {
 		return 2;
+	}
+
+	/**
+	 * @see javax.swing.table.AbstractTableModel#getColumnName(int)
+	 */
+	@Override
+	public String getColumnName(int i) {
+		return colName[i];
+	}
+
+	/**
+	 * @return the predicates
+	 */
+	public List<PredicateValue> getPredicates() {
+		return predicates;
+	}
+
+	/**
+	 * @see javax.swing.table.TableModel#getRowCount()
+	 */
+	@Override
+	public int getRowCount() {
+		return predicates != null ? predicates.size() : 0;
 	}
 
 	/**
@@ -64,17 +85,54 @@ public class PredicateTableModel extends AbstractTableModel {
 		case 0:
 			return format("Predicates." + p.getPredicate());
 		case 1:
-			return format("FuzzyBoolean." + v.getDescription(), v.getValue());
+			return v;
 		default:
 			return "???";
 		}
 	}
 
 	/**
-	 * @see javax.swing.table.AbstractTableModel#getColumnName(int)
+	 * @see javax.swing.table.AbstractTableModel#isCellEditable(int, int)
 	 */
 	@Override
-	public String getColumnName(int i) {
-		return colName[i];
+	public boolean isCellEditable(int rowIndex, int columnIndex) {
+		return columnIndex == 1 && editable;
+	}
+
+	/**
+	 * @return the editable
+	 */
+	public boolean isEditable() {
+		return editable;
+	}
+
+	/**
+	 * @param editable
+	 *            the editable to set
+	 */
+	public void setEditable(boolean editable) {
+		this.editable = editable;
+		fireTableStructureChanged();
+	}
+
+	/**
+	 * 
+	 * @param values
+	 */
+	public void setPredicates(List<PredicateValue> values) {
+		predicates = values;
+		fireTableDataChanged();
+	}
+
+	/**
+	 * @see javax.swing.table.AbstractTableModel#setValueAt(java.lang.Object,
+	 *      int, int)
+	 */
+	@Override
+	public void setValueAt(Object value, int rowIndex, int columnIndex) {
+		if (value != null && value instanceof FuzzyBoolean && columnIndex == 1) {
+			predicates.get(rowIndex).setValue((FuzzyBoolean) value);
+			fireTableCellUpdated(rowIndex, columnIndex);
+		}
 	}
 }

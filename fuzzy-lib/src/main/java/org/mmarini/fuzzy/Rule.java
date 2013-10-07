@@ -34,10 +34,14 @@ public class Rule implements Command {
 	public void execute(ExecutionContext ctx) {
 		condition.execute(ctx);
 		FuzzyBoolean value = ctx.pop();
-		ctx.push(value);
-		thenConseguences.execute(ctx);
-		ctx.push(value.not());
-		elseConseguences.execute(ctx);
+		if (thenConseguences != null) {
+			ctx.push(value);
+			thenConseguences.execute(ctx);
+		}
+		if (elseConseguences != null) {
+			ctx.push(value.not());
+			elseConseguences.execute(ctx);
+		}
 	}
 
 	/**
@@ -67,8 +71,9 @@ public class Rule implements Command {
 	 * @return
 	 */
 	public boolean hasConsequence(String p) {
-		return thenConseguences.hasPredicate(p)
-				|| elseConseguences.hasPredicate(p);
+		return (thenConseguences != null && thenConseguences.hasPredicate(p))
+				|| (elseConseguences != null && elseConseguences
+						.hasPredicate(p));
 	}
 
 	/**
@@ -85,21 +90,28 @@ public class Rule implements Command {
 	 * @return
 	 */
 	public Set<String> mapToInference(Set<String> inferences) {
-		return thenConseguences.mapToPredicate(elseConseguences
-				.mapToPredicate(inferences));
+		if (thenConseguences != null) {
+			inferences = thenConseguences.mapToPredicate(inferences);
+		}
+		if (elseConseguences != null) {
+			inferences = elseConseguences.mapToPredicate(inferences);
+		}
+		return inferences;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/**
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append("if ").append(condition).append(" then ")
-				.append(thenConseguences).append(" else ")
-				.append(elseConseguences);
+		builder.append("if ").append(condition);
+		if (thenConseguences != null) {
+			builder.append(" then ").append(thenConseguences);
+		}
+		if (thenConseguences != null) {
+			builder.append(" else ").append(elseConseguences);
+		}
 		return builder.toString();
 	}
 

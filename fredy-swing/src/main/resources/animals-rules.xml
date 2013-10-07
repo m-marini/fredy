@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<rules
-	xmlns="http://www.mmarini.org/fuzzy"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<rules xmlns="http://www.mmarini.org/fuzzy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.mmarini.org/fuzzy rules.xsd">
 	<rule>
 		<if>
@@ -13,11 +11,8 @@
 		<then>
 			<assign>mammifero</assign>
 		</then>
-		<else>
-			<assign-not>mammifero</assign-not>
-		</else>
 	</rule>
-	
+
 	<rule>
 		<if>
 			<or>
@@ -31,9 +26,6 @@
 		<then>
 			<assign>uccello</assign>
 		</then>
-		<else>
-			<assign-not>uccello</assign-not>
-		</else>
 	</rule>
 
 	<rule>
@@ -50,11 +42,8 @@
 		<then>
 			<assign>carnivoro</assign>
 		</then>
-		<else>
-			<assign-not>carnivoro</assign-not>
-		</else>
 	</rule>
-	
+
 	<rule>
 		<if>
 			<or>
@@ -71,11 +60,8 @@
 		<then>
 			<assign>ungulato</assign>
 		</then>
-		<else>
-			<assign-not>ungulato</assign-not>
-		</else>
 	</rule>
-	
+
 	<rule>
 		<if>
 			<and>
@@ -88,11 +74,8 @@
 		<then>
 			<assign>ghepardo</assign>
 		</then>
-		<else>
-			<assign-not>ghepardo</assign-not>
-		</else>
 	</rule>
-	
+
 	<rule>
 		<if>
 			<and>
@@ -105,9 +88,6 @@
 		<then>
 			<assign>tigre</assign>
 		</then>
-		<else>
-			<assign-not>tigre</assign-not>
-		</else>
 	</rule>
 
 	<rule>
@@ -122,9 +102,6 @@
 		<then>
 			<assign>giraffa</assign>
 		</then>
-		<else>
-			<assign-not>giraffa</assign-not>
-		</else>
 	</rule>
 
 	<rule>
@@ -137,9 +114,6 @@
 		<then>
 			<assign>zebra</assign>
 		</then>
-		<else>
-			<assign-not>zebra</assign-not>
-		</else>
 	</rule>
 
 	<rule>
@@ -148,21 +122,22 @@
 				<predicate>collo</predicate>
 				<predicate>uccello</predicate>
 				<predicate>bianconero</predicate>
-				<not><predicate>vola</predicate></not>
+				<not>
+					<predicate>vola</predicate>
+				</not>
 			</and>
 		</if>
 		<then>
 			<assign>struzzo</assign>
 		</then>
-		<else>
-			<assign-not>struzzo</assign-not>
-		</else>
 	</rule>
 
 	<rule>
 		<if>
 			<and>
-				<not><predicate>vola</predicate></not>
+				<not>
+					<predicate>vola</predicate>
+				</not>
 				<predicate>uccello</predicate>
 				<predicate>nuota</predicate>
 			</and>
@@ -170,9 +145,6 @@
 		<then>
 			<assign>pinguino</assign>
 		</then>
-		<else>
-			<assign-not>pinguino</assign-not>
-		</else>
 	</rule>
 
 	<rule>
@@ -185,8 +157,5 @@
 		<then>
 			<assign>albatro</assign>
 		</then>
-		<else>
-			<assign-not>albatro</assign-not>
-		</else>
 	</rule>
 </rules>

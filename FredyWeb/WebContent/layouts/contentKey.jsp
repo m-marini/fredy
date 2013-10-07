@@ -1,1 +1,0 @@
-<%@ taglib uri="http://jakarta.apache.org/struts/tags-tiles" prefix="tiles"%><%@ taglib uri="http://java.sun.com/jstl/fmt" prefix="fmt" %><fmt:setLocale value="${sessionScope['org.apache.struts.action.LOCALE']}"/><tiles:importAttribute /><fmt:message key="${key}"/>

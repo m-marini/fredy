@@ -3,7 +3,6 @@
  */
 package org.mmarini.fuzzy;
 
-
 /**
  * @author us00852
  * 
@@ -36,18 +35,18 @@ public class PredicateValue {
 	}
 
 	/**
+	 * @return the value
+	 */
+	public FuzzyBoolean getValue() {
+		return value;
+	}
+
+	/**
 	 * @param predicate
 	 *            the predicate to set
 	 */
 	public void setPredicate(String predicate) {
 		this.predicate = predicate;
-	}
-
-	/**
-	 * @return the value
-	 */
-	public FuzzyBoolean getValue() {
-		return value;
 	}
 
 	/**

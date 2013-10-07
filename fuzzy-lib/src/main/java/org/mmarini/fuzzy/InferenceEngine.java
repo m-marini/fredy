@@ -49,20 +49,61 @@ public class InferenceEngine implements ExecutionContext {
 		inferences = new HashSet<String>();
 		analysisRules = new HashSet<Rule>();
 		unknownPredicate = new HashSet<String>();
+		rules = Collections.emptyList();
 	}
 
 	/**
 	 * 
-	 * @param url
-	 * 
-	 * @throws IOException
-	 * @throws SAXException
-	 * @throws ParserConfigurationException
-	 * @throws FactoryConfigurationError
+	 * @param list
+	 * @return
 	 */
-	public void loadRules(URL url) throws FactoryConfigurationError,
-			ParserConfigurationException, SAXException, IOException {
-		setRules(RulesParser.getInstance().parse(url));
+	public Collection<PredicateValue> addAxiomsTo(
+			Collection<PredicateValue> list) {
+		return addValuesTo(list, axioms);
+	}
+
+	/**
+	 * 
+	 * @param list
+	 * @return
+	 */
+	public Collection<PredicateValue> addHypothesisTo(
+			Collection<PredicateValue> list) {
+		return addValuesTo(list, hypothesis);
+	}
+
+	/**
+	 * 
+	 * @param list
+	 * @return
+	 */
+	public Collection<PredicateValue> addInferencesTo(
+			Collection<PredicateValue> list) {
+		return addValuesTo(list, inferences);
+	}
+
+	/**
+	 * 
+	 * @param list
+	 * @return
+	 */
+	public Collection<PredicateValue> addPredicatesTo(
+			Collection<PredicateValue> list) {
+		return addValuesTo(list, predicates);
+	}
+
+	/**
+	 * 
+	 * @param list
+	 * @param names
+	 * @return
+	 */
+	private Collection<PredicateValue> addValuesTo(
+			Collection<PredicateValue> list, Collection<String> names) {
+		for (String n : names) {
+			list.add(new PredicateValue(n, getValue(n)));
+		}
+		return list;
 	}
 
 	/**
@@ -78,6 +119,18 @@ public class InferenceEngine implements ExecutionContext {
 		for (String h : hypothesis) {
 			infer(h);
 		}
+	}
+
+	/**
+	 * 
+	 * @param predicates
+	 */
+	public Collection<PredicateValue> applyPredicates(
+			Collection<PredicateValue> predicates) {
+		for (PredicateValue p : predicates) {
+			predicateValues.put(p.getPredicate(), p.getValue());
+		}
+		return predicates;
 	}
 
 	/**
@@ -172,6 +225,20 @@ public class InferenceEngine implements ExecutionContext {
 	}
 
 	/**
+	 * 
+	 * @param url
+	 * 
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws ParserConfigurationException
+	 * @throws FactoryConfigurationError
+	 */
+	public void loadRules(URL url) throws FactoryConfigurationError,
+			ParserConfigurationException, SAXException, IOException {
+		setRules(RulesParser.getInstance().parse(url));
+	}
+
+	/**
 	 * Parse the rules to find the predicates, hypothesis, axioms and
 	 * inferences.
 	 * <p>
@@ -227,60 +294,6 @@ public class InferenceEngine implements ExecutionContext {
 	@Override
 	public void push(String predicate) {
 		push(getValue(predicate));
-	}
-
-	/**
-	 * 
-	 * @param list
-	 * @return
-	 */
-	public Collection<PredicateValue> addAxiomsTo(
-			Collection<PredicateValue> list) {
-		return addValuesTo(list, axioms);
-	}
-
-	/**
-	 * 
-	 * @param list
-	 * @return
-	 */
-	public Collection<PredicateValue> addPredicatesTo(
-			Collection<PredicateValue> list) {
-		return addValuesTo(list, predicates);
-	}
-
-	/**
-	 * 
-	 * @param list
-	 * @return
-	 */
-	public Collection<PredicateValue> addHypothesisTo(
-			Collection<PredicateValue> list) {
-		return addValuesTo(list, hypothesis);
-	}
-
-	/**
-	 * 
-	 * @param list
-	 * @return
-	 */
-	public Collection<PredicateValue> addInferencesTo(
-			Collection<PredicateValue> list) {
-		return addValuesTo(list, inferences);
-	}
-
-	/**
-	 * 
-	 * @param list
-	 * @param names
-	 * @return
-	 */
-	private Collection<PredicateValue> addValuesTo(
-			Collection<PredicateValue> list, Collection<String> names) {
-		for (String n : names) {
-			list.add(new PredicateValue(n, getValue(n)));
-		}
-		return list;
 	}
 
 	/**

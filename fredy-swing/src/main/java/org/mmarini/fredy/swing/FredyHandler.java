@@ -60,29 +60,9 @@ public class FredyHandler {
 
 	/**
 	 * 
-	 * @param url
-	 */
-	public void loadRules(URL url) {
-		try {
-			engine.loadRules(url);
-		} catch (FactoryConfigurationError e) {
-			e.printStackTrace();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * 
 	 * @param values
 	 */
 	public List<PredicateValue> addAxiomsTo(List<PredicateValue> values) {
-		engine.setPredicate("uova", FuzzyBoolean.QUITE_TRUE);
-		engine.setPredicate("collo", FuzzyBoolean.QUITE_FALSE);
 		engine.addAxiomsTo(values);
 		Collections.sort(values, cmp);
 		return values;
@@ -114,6 +94,28 @@ public class FredyHandler {
 	 */
 	public void analyze() {
 		engine.analyze();
+	}
+
+	/**
+	 * 
+	 * @param url
+	 * @throws IOException
+	 * @throws SAXException
+	 * @throws ParserConfigurationException
+	 * @throws FactoryConfigurationError
+	 */
+	public void loadRules(URL url) throws FactoryConfigurationError,
+			ParserConfigurationException, SAXException, IOException {
+		engine.loadRules(url);
+	}
+
+	/**
+	 * 
+	 * @param predicates
+	 */
+	public void setAxioms(List<PredicateValue> predicates) {
+		if (predicates != null)
+			engine.applyPredicates(predicates);
 	}
 
 }
