@@ -16,11 +16,12 @@ import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
+import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -65,6 +66,8 @@ public class Main {
 	private boolean analyzing;
 
 	private JFileChooser fileChooser;
+	private JSplitPane verticalPane;
+	private JSplitPane hsp;
 
 	/**
 	 * 
@@ -76,6 +79,8 @@ public class Main {
 		axiomsTableModel = new PredicateTableModel();
 		inferencesTableModel = new PredicateTableModel();
 		hypothesisTableModel = new PredicateTableModel();
+		hsp = new JSplitPane();
+		verticalPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 		openAction = new AbstractAction() {
 			private static final long serialVersionUID = -4093560512652496020L;
 
@@ -91,13 +96,18 @@ public class Main {
 				analyze();
 			}
 		});
+
+		verticalPane.setOneTouchExpandable(true);
+		verticalPane.setResizeWeight(0.5);
+		hsp.setOneTouchExpandable(true);
+		hsp.setResizeWeight(0.5);
 		frame.setSize(480, 640);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setupActions();
 		createFrameContent();
 		axiomsTableModel.setEditable(true);
-		fileChooser
-				.setFileFilter(new FileNameExtensionFilter("XML File", "xml"));
+		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages
+				.getString("Main.fileType.label"), "xml")); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	/**
@@ -152,22 +162,25 @@ public class Main {
 	 * @return
 	 */
 	private Component createAxiomsPane() {
-		return new JScrollPane(new PredicateTable(axiomsTableModel));
+		JScrollPane c = new JScrollPane(new PredicateTable(axiomsTableModel));
+		c.setBorder(BorderFactory.createTitledBorder(Messages
+				.getString(MAIN_AXIOMS_LABEL)));
+		return c;
 	}
 
 	/**
 	 * 
 	 */
 	private void createFrameContent() {
+		verticalPane.setTopComponent(createHypothesysPane());
+		verticalPane.setBottomComponent(createInferencesPane());
+
+		hsp.setLeftComponent(createAxiomsPane());
+		hsp.setRightComponent(verticalPane);
+
 		Container cp = frame.getContentPane();
 		cp.setLayout(new BorderLayout());
-		JTabbedPane tp = new JTabbedPane();
-		tp.addTab(Messages.getString(MAIN_AXIOMS_LABEL), createAxiomsPane());
-		tp.addTab(Messages.getString(MAIN_HYPOTHESIS_LABEL),
-				createHypothesysPane());
-		tp.addTab(Messages.getString(MAIN_INFERENCES_LABEL),
-				createInferencesPane());
-		cp.add(tp, BorderLayout.CENTER);
+		cp.add(hsp, BorderLayout.CENTER);
 		cp.add(createToolBar(), BorderLayout.NORTH);
 	}
 
@@ -176,7 +189,11 @@ public class Main {
 	 * @return
 	 */
 	private Component createHypothesysPane() {
-		return new JScrollPane(new PredicateTable(hypothesisTableModel));
+		JScrollPane c = new JScrollPane(
+				new PredicateTable(hypothesisTableModel));
+		c.setBorder(BorderFactory.createTitledBorder(Messages
+				.getString(MAIN_HYPOTHESIS_LABEL)));
+		return c;
 	}
 
 	/**
@@ -184,7 +201,11 @@ public class Main {
 	 * @return
 	 */
 	private Component createInferencesPane() {
-		return new JScrollPane(new PredicateTable(inferencesTableModel));
+		JScrollPane c = new JScrollPane(
+				new PredicateTable(inferencesTableModel));
+		c.setBorder(BorderFactory.createTitledBorder(Messages
+				.getString(MAIN_INFERENCES_LABEL)));
+		return c;
 	}
 
 	/**
@@ -219,7 +240,6 @@ public class Main {
 	/**
 	 * 
 	 * @param args
-	 * @throws MalformedURLException
 	 */
 	private void run(String[] args) {
 		logger.debug("Main started"); //$NON-NLS-1$
@@ -237,6 +257,8 @@ public class Main {
 		} catch (Exception e) {
 			alert(MAIN_INIT_ERROR, e, e.getMessage());
 		}
+		verticalPane.setDividerLocation(0.5);
+		hsp.setDividerLocation(0.5);
 	}
 
 	/**
