@@ -3,6 +3,8 @@
  */
 package org.mmarini.fuzzy;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -115,4 +117,20 @@ public class Rule implements Command {
 		return builder.toString();
 	}
 
+	/**
+	 * 
+	 * @param relations
+	 * @return
+	 */
+	public Collection<Relation> addRelations(Collection<Relation> relations) {
+		if (thenConseguences != null) {
+			for (String s : condition.mapToPredicate(new HashSet<String>())) {
+				for (String t : thenConseguences
+						.mapToPredicate(new HashSet<String>())) {
+					relations.add(new Relation(s, t));
+				}
+			}
+		}
+		return relations;
+	}
 }

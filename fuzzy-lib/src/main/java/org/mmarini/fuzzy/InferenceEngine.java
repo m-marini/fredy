@@ -9,6 +9,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +20,14 @@ import java.util.Set;
 import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.mmarini.functional.FEntry;
+import org.mmarini.functional.FList;
+import org.mmarini.functional.FMap;
+import org.mmarini.functional.FSet;
+import org.mmarini.functional.Functor1;
+import org.mmarini.functional.Functor2;
+import org.mmarini.functional.ListImpl;
+import org.mmarini.functional.SetImpl;
 import org.mmarini.fuzzy.parse.RulesParser;
 import org.xml.sax.SAXException;
 
@@ -33,9 +42,10 @@ public class InferenceEngine implements ExecutionContext {
 	private Set<String> predicates;
 	private Set<String> inferences;
 	private Set<String> axioms;
-	private List<Rule> rules;
+	private FList<Rule> rules;
 	private Set<Rule> analysisRules;
 	private Set<String> unknownPredicate;
+	private FList<PredicateInfo> predicateInfos;
 
 	/**
 	 * 
@@ -49,7 +59,7 @@ public class InferenceEngine implements ExecutionContext {
 		inferences = new HashSet<String>();
 		analysisRules = new HashSet<Rule>();
 		unknownPredicate = new HashSet<String>();
-		rules = Collections.emptyList();
+		rules = new ListImpl<Rule>();
 	}
 
 	/**
@@ -235,7 +245,7 @@ public class InferenceEngine implements ExecutionContext {
 	 */
 	public void loadRules(URL url) throws FactoryConfigurationError,
 			ParserConfigurationException, SAXException, IOException {
-		setRules(RulesParser.getInstance().parse(url));
+		applyRules(RulesParser.getInstance().parse(url));
 	}
 
 	/**
@@ -270,6 +280,7 @@ public class InferenceEngine implements ExecutionContext {
 
 		axioms.removeAll(inferences);
 		inferences.removeAll(hypothesis);
+		computePredicateInfos();
 	}
 
 	/**
@@ -309,9 +320,111 @@ public class InferenceEngine implements ExecutionContext {
 	 * @param rules
 	 *            the rules to set
 	 */
-	public void setRules(List<Rule> rules) {
-		this.rules = rules;
+	public void applyRules(List<Rule> rules) {
+		this.rules.addAll(rules);
 		parseRules();
 
+	}
+
+	/**
+	 * 
+	 * @param relations
+	 * @return
+	 */
+	FSet<Relation> addRelations() {
+		FSet<Relation> relations = new SetImpl<Relation>();
+		for (Rule r : rules)
+			r.addRelations(relations);
+		return relations;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	private FSet<Relation> computeClosure() {
+		FSet<Relation> rels = addRelations();
+		Set<String> sources = rels.map(Relation.sourceGetter);
+		Set<String> targets = rels.map(Relation.targetGetter);
+
+		for (String s : sources) {
+			for (String t : targets) {
+				Relation r = new Relation(s, t);
+				if (!s.equals(t) && !rels.contains(r)) {
+					for (String w : targets) {
+						if (!w.equals(s) && !w.equals(t)
+								&& rels.contains(new Relation(s, w))
+								&& rels.contains(new Relation(w, t))) {
+							rels.add(r);
+						}
+					}
+				}
+			}
+		}
+		return rels;
+	}
+
+	/**
+	 * 
+	 */
+	private void computePredicateInfos() {
+		FSet<Relation> rels = computeClosure();
+		rels.filter(new Functor1<Boolean, Relation>() {
+
+			@Override
+			public Boolean apply(Relation p) {
+				return axioms.contains(p.getSource())
+						&& hypothesis.contains(p.getTarget());
+			}
+		});
+
+		final FMap<String, FSet<String>> ax = rels
+				.groupBy(Relation.sourceGetter)
+				.map(new Functor2<FEntry<String, FSet<String>>, String, FSet<Relation>>() {
+
+					@Override
+					public FEntry<String, FSet<String>> apply(String a,
+							FSet<Relation> h) {
+						FSet<String> v = h.map(Relation.targetGetter);
+						return new FEntry<String, FSet<String>>(a, v);
+					}
+				});
+		final FMap<String, Integer> hy = rels
+				.groupBy(Relation.targetGetter)
+				.map(new Functor2<FEntry<String, Integer>, String, FSet<Relation>>() {
+					@Override
+					public FEntry<String, Integer> apply(String p1,
+							FSet<Relation> p2) {
+						return new FEntry<String, Integer>(p1, p2.size());
+					}
+				});
+		predicateInfos = ax
+				.mapToList(new Functor2<PredicateInfo, String, FSet<String>>() {
+
+					@Override
+					public PredicateInfo apply(String a, FSet<String> hl) {
+						return new PredicateInfo(a, hl.map(
+								new Functor1<Integer, String>() {
+
+									@Override
+									public Integer apply(String h) {
+										return hy.get(h);
+									}
+								}).min(new Comparator<Integer>() {
+
+							@Override
+							public int compare(Integer o1, Integer o2) {
+								return o1.compareTo(o2);
+							}
+						}), hl.size());
+					}
+				});
+	}
+
+	/**
+	 * @return the predicateInfos
+	 */
+	public FList<PredicateInfo> getPredicateInfos() {
+		return predicateInfos;
 	}
 }

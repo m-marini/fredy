@@ -1,0 +1,30 @@
+# Ordinamento degli assiomi.
+
+Per ottimizzare l'analisi inferenziale è meglio determinare i valori degli assiomi più discriminanti le ipotesi.
+
+Per determinare un ipotesi è necessario applicare l'insieme di regole che la determinano.
+Per determinare l'applicabilità di una regola è necessario valutare l'espressione che condiziona la regola.
+la valutazione deve a sua volta determinare tutti i predicati che la determinano applicando
+le regole che li determninano fino ad arrivare ad un assioma.
+Per ogni ipotesi possiamo quindi determinare M(H) il numero di assiomi necessari per la sua determinazione.
+
+Per procedimento inverso possiamo determinare per ogni assioma quante ipotesi sono conseguenti.
+
+Più in generale possiamo valutare N(A, H) uguale al numero di assiomi necessari per determinare l'ipotesi per ogni
+copia di (assioma, ipotesi) 
+
+Esempi:
+
+if a then b
+l'assioma a è necessario per determinare b (a implica b oppure a <=> b) quindi N(a,b) = 1 
+
+if a then c
+l'assioma a non è necessario per determinare b quindi N(a,b) è indeterminato  
+
+if and (a, b) then c  
+gli assiomi a e b sono necessari per determinare c quindi N(a,c) = N(b,c) = 2  
+
+Per ogni assioma possiamo prendere il numero minimo di assiomi necessari per determinare un'ipotesi N'(A) = min N(A,H)
+per ogni H.
+Questo indicatore ci da modo ordinare gli assiomi in base alla capacità di determinare una qualsiasi ipotesi.
+A parità di N'(A) gli assiomi con 
