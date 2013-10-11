@@ -20,6 +20,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.event.TableModelEvent;
@@ -43,6 +44,7 @@ public class Main {
 	private static final String MAIN_FILE_CANNOT_BE_READ_ERROR = "Main.fileCannotBeRead.error"; //$NON-NLS-1$
 	private static final String MAIN_OPENING_ERROR = "Main.opening.error"; //$NON-NLS-1$
 	private static final String MAIN_OPEN_ACTION = "Main.open.action"; //$NON-NLS-1$
+	private static final String MAIN_CLEAR_ACTION = "Main.clear.action"; //$NON-NLS-1$
 	private static final String MAIN_ALERT_TITLE = "Main.alert.title"; //$NON-NLS-1$
 
 	private static Logger logger = LoggerFactory.getLogger(Main.class);
@@ -61,6 +63,7 @@ public class Main {
 	private PredicateTableModel inferencesTableModel;
 	private PredicateTableModel axiomsTableModel;
 	private AbstractAction openAction;
+	private AbstractAction clearAction;
 	private boolean analyzing;
 
 	private JFileChooser fileChooser;
@@ -87,6 +90,14 @@ public class Main {
 				open();
 			}
 		};
+		clearAction = new AbstractAction() {
+			private static final long serialVersionUID = -4093560512652496020L;
+
+			@Override
+			public void actionPerformed(ActionEvent ev) {
+				clear();
+			}
+		};
 		axiomsTableModel.addTableModelListener(new TableModelListener() {
 
 			@Override
@@ -106,6 +117,14 @@ public class Main {
 		axiomsTableModel.setEditable(true);
 		fileChooser.setFileFilter(new FileNameExtensionFilter(Messages
 				.getString("Main.fileType.label"), "xml")); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	/**
+	 * 
+	 */
+	private void clear() {
+		axiomsTableModel.clearValues();
+		analyze();
 	}
 
 	/**
@@ -210,6 +229,8 @@ public class Main {
 	private Component createToolBar() {
 		JToolBar tb = new JToolBar();
 		tb.add(openAction);
+		tb.add(new JSeparator(JSeparator.VERTICAL));
+		tb.add(clearAction);
 		return tb;
 	}
 
@@ -261,5 +282,7 @@ public class Main {
 	 */
 	private void setupActions() {
 		openAction.putValue(Action.NAME, Messages.getString(MAIN_OPEN_ACTION));
+		clearAction
+				.putValue(Action.NAME, Messages.getString(MAIN_CLEAR_ACTION));
 	}
 }

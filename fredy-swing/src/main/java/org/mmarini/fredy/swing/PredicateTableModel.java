@@ -135,4 +135,14 @@ public class PredicateTableModel extends AbstractTableModel {
 			fireTableCellUpdated(rowIndex, columnIndex);
 		}
 	}
+
+	/**
+	 * 
+	 */
+	public void clearValues() {
+		for (PredicateValue p : predicates) {
+			p.setValue(FuzzyBoolean.UNKNOWN);
+		}
+		fireTableDataChanged();
+	}
 }
