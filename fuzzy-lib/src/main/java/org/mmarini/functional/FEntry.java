@@ -12,40 +12,12 @@ public class FEntry<K, V> {
 	private V value;
 
 	/**
-	 * 
-	 * @return
-	 */
-	public K getKey() {
-		return key;
-	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	public V getValue() {
-		return value;
-	}
-
-	/**
 	 * @param key
 	 * @param value
 	 */
 	public FEntry(K key, V value) {
 		this.key = key;
 		this.value = value;
-	}
-
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((key == null) ? 0 : key.hashCode());
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
-		return result;
 	}
 
 	/**
@@ -72,6 +44,34 @@ public class FEntry<K, V> {
 		} else if (!value.equals(other.value))
 			return false;
 		return true;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public K getKey() {
+		return key;
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	public V getValue() {
+		return value;
+	}
+
+	/**
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((key == null) ? 0 : key.hashCode());
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		return result;
 	}
 
 	/**

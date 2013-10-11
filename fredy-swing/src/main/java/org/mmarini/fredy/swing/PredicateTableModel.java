@@ -19,7 +19,7 @@ import org.mmarini.fuzzy.PredicateValue;
 public class PredicateTableModel extends AbstractTableModel {
 	private static final long serialVersionUID = 1714091983473406882L;
 	private String[] colName;
-	private List<PredicateValue> predicates;
+	private List<? extends PredicateValue> predicates;
 	private boolean editable;
 
 	/**
@@ -62,7 +62,7 @@ public class PredicateTableModel extends AbstractTableModel {
 	/**
 	 * @return the predicates
 	 */
-	public List<PredicateValue> getPredicates() {
+	public List<? extends PredicateValue> getPredicates() {
 		return predicates;
 	}
 
@@ -119,7 +119,7 @@ public class PredicateTableModel extends AbstractTableModel {
 	 * 
 	 * @param values
 	 */
-	public void setPredicates(List<PredicateValue> values) {
+	public void setPredicates(List<? extends PredicateValue> values) {
 		predicates = values;
 		fireTableDataChanged();
 	}

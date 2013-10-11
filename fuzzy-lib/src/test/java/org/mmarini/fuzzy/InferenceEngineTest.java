@@ -2,9 +2,7 @@ package org.mmarini.fuzzy;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
@@ -81,31 +79,28 @@ public class InferenceEngineTest {
 	}
 
 	@Theory
-	public void testComputeClosure(@RuleList List<Rule> rules) {
-		InferenceEngine e = new InferenceEngine();
-		e.applyRules(rules);
-		FSet<Relation> rs = e.addRelations();
-		assertThat(rs, hasSize(6));
-		assertThat(rs, hasItem(new Relation("A", "D")));
-		assertThat(rs, hasItem(new Relation("B", "D")));
-		assertThat(rs, hasItem(new Relation("B", "F")));
-		assertThat(rs, hasItem(new Relation("C", "E")));
-		assertThat(rs, hasItem(new Relation("C", "F")));
-		assertThat(rs, hasItem(new Relation("C", "G")));
-		assertThat(rs, hasItem(new Relation("D", "F")));
-		assertThat(rs, hasItem(new Relation("E", "F")));
-	}
-
-	@Theory
 	public void testAddAxioms(@RuleList List<Rule> rules) {
 		InferenceEngine e = new InferenceEngine();
 		e.applyRules(rules);
-		Collection<PredicateValue> rs = e
-				.addAxiomsTo(new ArrayList<PredicateValue>());
-		assertThat(rs, hasSize(3));
-		assertThat(rs, hasItem(new PredicateValue("A", FuzzyBoolean.UNKNOWN)));
-		assertThat(rs, hasItem(new PredicateValue("B", FuzzyBoolean.UNKNOWN)));
-		assertThat(rs, hasItem(new PredicateValue("C", FuzzyBoolean.UNKNOWN)));
+		Collection<AxiomValue> rs = e.retreiveAxiomValues();
+		assertThat(
+				rs,
+				containsInAnyOrder(new AxiomValue("A", 3, 1,
+						FuzzyBoolean.UNKNOWN), new AxiomValue("B", 3, 1,
+						FuzzyBoolean.UNKNOWN), new AxiomValue("C", 1, 2,
+						FuzzyBoolean.UNKNOWN)));
+	}
+
+	@Theory
+	public void testAddRelations(@RuleList List<Rule> rules) {
+		InferenceEngine e = new InferenceEngine();
+		e.applyRules(rules);
+		FSet<Relation> rs = e.getRelations();
+		assertThat(
+				rs,
+				containsInAnyOrder(new Relation("A", "D"), new Relation("B",
+						"D"), new Relation("C", "E"), new Relation("C", "G"),
+						new Relation("D", "F"), new Relation("E", "F")));
 	}
 
 	@Theory
@@ -133,7 +128,7 @@ public class InferenceEngineTest {
 	}
 
 	@Theory
-	public void testSetRules(@RuleList List<Rule> rules) {
+	public void testApplyRules(@RuleList List<Rule> rules) {
 		InferenceEngine e = new InferenceEngine();
 		e.applyRules(rules);
 		assertThat(e, hasProperty("axioms", containsInAnyOrder("A", "B", "C")));
@@ -143,20 +138,13 @@ public class InferenceEngineTest {
 				e,
 				hasProperty("predicates",
 						containsInAnyOrder("A", "B", "C", "D", "E", "F", "G")));
-	}
-
-	@Theory
-	public void testAddRelations(@RuleList List<Rule> rules) {
-		InferenceEngine e = new InferenceEngine();
-		e.applyRules(rules);
-		FSet<Relation> rs = e.addRelations();
-		assertThat(rs, hasSize(6));
-		assertThat(rs, hasItem(new Relation("A", "D")));
-		assertThat(rs, hasItem(new Relation("B", "D")));
-		assertThat(rs, hasItem(new Relation("C", "E")));
-		assertThat(rs, hasItem(new Relation("C", "G")));
-		assertThat(rs, hasItem(new Relation("D", "F")));
-		assertThat(rs, hasItem(new Relation("E", "F")));
+		assertThat(
+				e,
+				hasProperty(
+						"predicateInfos",
+						containsInAnyOrder(new AxiomInfo("A", 3, 1),
+								new AxiomInfo("B", 3, 1), new AxiomInfo("C", 1,
+										2))));
 	}
 
 }

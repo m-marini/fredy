@@ -31,6 +31,23 @@ public class Rule implements Command {
 
 	/**
 	 * 
+	 * @param relations
+	 * @return
+	 */
+	public Collection<Relation> addRelations(Collection<Relation> relations) {
+		if (thenConseguences != null) {
+			for (String s : condition.mapToPredicate(new HashSet<String>())) {
+				for (String t : thenConseguences
+						.mapToPredicate(new HashSet<String>())) {
+					relations.add(new Relation(s, t));
+				}
+			}
+		}
+		return relations;
+	}
+
+	/**
+	 * 
 	 */
 	@Override
 	public void execute(ExecutionContext ctx) {
@@ -115,22 +132,5 @@ public class Rule implements Command {
 			builder.append(" else ").append(elseConseguences);
 		}
 		return builder.toString();
-	}
-
-	/**
-	 * 
-	 * @param relations
-	 * @return
-	 */
-	public Collection<Relation> addRelations(Collection<Relation> relations) {
-		if (thenConseguences != null) {
-			for (String s : condition.mapToPredicate(new HashSet<String>())) {
-				for (String t : thenConseguences
-						.mapToPredicate(new HashSet<String>())) {
-					relations.add(new Relation(s, t));
-				}
-			}
-		}
-		return relations;
 	}
 }
