@@ -4,8 +4,10 @@
 package org.mmarini.fuzzy;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
+
+import org.mmarini.functional.FSet;
+import org.mmarini.functional.SetImpl;
 
 /**
  * @author US00852
@@ -13,8 +15,8 @@ import java.util.Set;
  */
 public class Rule implements Command {
 	private Expression condition;
-	private AssignListCmd thenConseguences;
-	private AssignListCmd elseConseguences;
+	private AssertListCmd thenConseguences;
+	private AssertListCmd elseConseguences;
 
 	/**
 	 * 
@@ -22,11 +24,27 @@ public class Rule implements Command {
 	 * @param thenConseguences
 	 * @param elseConseguences
 	 */
-	public Rule(Expression condition, AssignListCmd thenConseguences,
-			AssignListCmd elseConseguences) {
+	public Rule(Expression condition, AssertListCmd thenConseguences,
+			AssertListCmd elseConseguences) {
 		this.condition = condition;
 		this.thenConseguences = thenConseguences;
 		this.elseConseguences = elseConseguences;
+	}
+
+	/**
+	 * 
+	 * @param relations
+	 * @return
+	 */
+	public Collection<Relation> addRelations(Collection<Relation> relations) {
+		if (thenConseguences != null) {
+			for (String s : condition.mapToPredicate(null)) {
+				for (String t : thenConseguences.mapToPredicate(null)) {
+					relations.add(new Relation(s, t));
+				}
+			}
+		}
+		return relations;
 	}
 
 	/**
@@ -56,14 +74,14 @@ public class Rule implements Command {
 	/**
 	 * @return the elseConseguences
 	 */
-	public AssignListCmd getElseConseguences() {
+	public AssertListCmd getElseConseguences() {
 		return elseConseguences;
 	}
 
 	/**
 	 * @return the thenConseguences
 	 */
-	public AssignListCmd getThenConseguences() {
+	public AssertListCmd getThenConseguences() {
 		return thenConseguences;
 	}
 
@@ -80,10 +98,10 @@ public class Rule implements Command {
 
 	/**
 	 * 
-	 * @param inferences
+	 * @return
 	 */
-	public Set<String> mapToCondition(Set<String> inferences) {
-		return condition.mapToPredicate(inferences);
+	public FSet<String> retrieveCondition() {
+		return condition.mapToPredicate(new SetImpl<String>());
 	}
 
 	/**
@@ -91,7 +109,8 @@ public class Rule implements Command {
 	 * @param inferences
 	 * @return
 	 */
-	public Set<String> mapToInference(Set<String> inferences) {
+	public Set<String> retrieveInference() {
+		FSet<String> inferences = new SetImpl<String>();
 		if (thenConseguences != null) {
 			inferences = thenConseguences.mapToPredicate(inferences);
 		}
@@ -115,22 +134,5 @@ public class Rule implements Command {
 			builder.append(" else ").append(elseConseguences);
 		}
 		return builder.toString();
-	}
-
-	/**
-	 * 
-	 * @param relations
-	 * @return
-	 */
-	public Collection<Relation> addRelations(Collection<Relation> relations) {
-		if (thenConseguences != null) {
-			for (String s : condition.mapToPredicate(new HashSet<String>())) {
-				for (String t : thenConseguences
-						.mapToPredicate(new HashSet<String>())) {
-					relations.add(new Relation(s, t));
-				}
-			}
-		}
-		return relations;
 	}
 }

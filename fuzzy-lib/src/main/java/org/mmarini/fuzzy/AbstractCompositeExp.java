@@ -4,7 +4,8 @@
 package org.mmarini.fuzzy;
 
 import java.util.ArrayList;
-import java.util.Set;
+
+import org.mmarini.functional.FSet;
 
 /**
  * @author US00852
@@ -16,6 +17,7 @@ public abstract class AbstractCompositeExp extends ArrayList<Expression>
 
 	/**
 	 * 
+	 * @param parameters
 	 */
 	protected AbstractCompositeExp(Expression... parameters) {
 		for (Expression p : parameters) {
@@ -24,7 +26,7 @@ public abstract class AbstractCompositeExp extends ArrayList<Expression>
 	}
 
 	/**
-	 * @see org.mmarini.fuzzy.Expression#hasPredicate(java.lang.String)
+	 * @see org.mmarini.fuzzy.PredicateContainer#hasPredicate(java.lang.String)
 	 */
 	@Override
 	public boolean hasPredicate(String predicate) {
@@ -36,10 +38,11 @@ public abstract class AbstractCompositeExp extends ArrayList<Expression>
 	}
 
 	/**
-	 * @see org.mmarini.fuzzy.Command#mapToPredicate(java.util.Set)
+	 * @see org.mmarini.fuzzy.PredicateContainer#mapToPredicate(org.mmarini.functional
+	 *      .FSet)
 	 */
 	@Override
-	public Set<String> mapToPredicate(Set<String> predicates) {
+	public FSet<String> mapToPredicate(FSet<String> predicates) {
 		for (Expression p : this) {
 			predicates = p.mapToPredicate(predicates);
 		}

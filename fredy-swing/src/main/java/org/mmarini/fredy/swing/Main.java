@@ -12,7 +12,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -27,7 +26,6 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.mmarini.fuzzy.PredicateValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +99,7 @@ public class Main {
 		verticalPane.setResizeWeight(0.5);
 		hsp.setOneTouchExpandable(true);
 		hsp.setResizeWeight(0.5);
-		frame.setSize(480, 640);
+		frame.setSize(640, 480);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setupActions();
 		createFrameContent();
@@ -147,12 +145,9 @@ public class Main {
 			analyzing = true;
 			handler.setAxioms(axiomsTableModel.getPredicates());
 			handler.analyze();
-			hypothesisTableModel.setPredicates(handler
-					.addHypothesisTo(new ArrayList<PredicateValue>()));
-			axiomsTableModel.setPredicates(handler
-					.addAxiomsTo(new ArrayList<PredicateValue>()));
-			inferencesTableModel.setPredicates(handler
-					.addInferencesTo(new ArrayList<PredicateValue>()));
+			hypothesisTableModel.setPredicates(handler.retrieveHypothesis());
+			axiomsTableModel.setPredicates(handler.retrieveAxiom());
+			inferencesTableModel.setPredicates(handler.retrieveInferences());
 			analyzing = false;
 		}
 	}

@@ -1,6 +1,6 @@
 package org.mmarini.fuzzy.parse;
 
-import org.mmarini.fuzzy.AssignFalseCmd;
+import org.mmarini.fuzzy.AssertFalseCmd;
 
 /**
  * @author US00852
@@ -22,6 +22,6 @@ public class AssignNotState extends ParserAdapter {
 	@Override
 	public void end() {
 		RulesHandler handler = getHandler();
-		handler.pushAssign(new AssignFalseCmd(handler.getName().toString()));
+		handler.pushAssign(new AssertFalseCmd(handler.getName().toString()));
 	}
 }

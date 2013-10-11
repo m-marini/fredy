@@ -9,13 +9,14 @@ public class MockExecutionContext implements ExecutionContext {
 	}
 
 	@Override
-	public void assignFalse(String predicate) {
+	public void assertFalse(String predicate) {
 		this.predicate = predicate;
+		value = value.not();
 		--size;
 	}
 
 	@Override
-	public void assignTrue(String predicate) {
+	public void assertTrue(String predicate) {
 		this.predicate = predicate;
 		--size;
 	}

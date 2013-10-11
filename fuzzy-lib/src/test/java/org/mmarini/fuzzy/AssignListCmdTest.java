@@ -23,8 +23,8 @@ public class AssignListCmdTest {
 
 	@Theory
 	public void testExecute(String p1, String p2) {
-		AssignListCmd cmd = new AssignListCmd(new AssignTrueCmd(p1),
-				new AssignTrueCmd(p2));
+		AssertListCmd cmd = new AssertListCmd(new AssertTrueCmd(p1),
+				new AssertTrueCmd(p2));
 		mock.push(FuzzyBoolean.UNKNOWN);
 		cmd.execute(mock);
 		assertThat(mock, hasProperty("size", equalTo(0)));
@@ -34,8 +34,8 @@ public class AssignListCmdTest {
 
 	@Theory
 	public void testToString(String p1, String p2) {
-		AssignListCmd cmd = new AssignListCmd(new AssignTrueCmd(p1),
-				new AssignTrueCmd(p2));
+		AssertListCmd cmd = new AssertListCmd(new AssertTrueCmd(p1),
+				new AssertTrueCmd(p2));
 		assertThat(cmd.toString(),
 				equalTo("[" + p1 + "=true, " + p2 + "=true]"));
 	}

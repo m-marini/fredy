@@ -23,7 +23,7 @@ public class AssignTrueCmdTest {
 
 	@Theory
 	public void assignExecute(String predicate, FuzzyBoolean value) {
-		AssignTrueCmd cmd = new AssignTrueCmd(predicate);
+		AssertTrueCmd cmd = new AssertTrueCmd(predicate);
 		mock.push(value);
 		cmd.execute(mock);
 		assertThat(mock, hasProperty("size", equalTo(0)));
@@ -33,13 +33,13 @@ public class AssignTrueCmdTest {
 
 	@Theory
 	public void assignHasPredicate(String predicate) {
-		AssignTrueCmd cmd = new AssignTrueCmd(predicate);
+		AssertTrueCmd cmd = new AssertTrueCmd(predicate);
 		assertThat(cmd, hasProperty("predicate", equalTo(predicate)));
 	}
 
 	@Theory
 	public void assignToString(String predicate) {
-		AssignTrueCmd cmd = new AssignTrueCmd(predicate);
+		AssertTrueCmd cmd = new AssertTrueCmd(predicate);
 		assertThat(cmd.toString(), equalTo(predicate + "=true"));
 	}
 

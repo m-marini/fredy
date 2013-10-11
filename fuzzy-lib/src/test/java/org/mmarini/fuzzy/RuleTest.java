@@ -31,8 +31,8 @@ public class RuleTest {
 	public void testExecute(FuzzyBoolean value, String thenAss, String elseAss) {
 		assumeTrue(!thenAss.equals(elseAss));
 		ConstantExp cond = new ConstantExp(value);
-		AssignListCmd thenCons = new AssignListCmd(new AssignTrueCmd(thenAss));
-		AssignListCmd elseCons = new AssignListCmd(new AssignTrueCmd(elseAss));
+		AssertListCmd thenCons = new AssertListCmd(new AssertTrueCmd(thenAss));
+		AssertListCmd elseCons = new AssertListCmd(new AssertTrueCmd(elseAss));
 		Rule r = new Rule(cond, thenCons, elseCons);
 		r.execute(mock);
 		assertThat(mock, hasProperty("size", equalTo(0)));
@@ -44,8 +44,8 @@ public class RuleTest {
 	public void testGetCondition(FuzzyBoolean value, String thenAss,
 			String elseAss) {
 		ConstantExp cond = new ConstantExp(value);
-		AssignListCmd thenCons = new AssignListCmd(new AssignTrueCmd(thenAss));
-		AssignListCmd elseCons = new AssignListCmd(new AssignTrueCmd(elseAss));
+		AssertListCmd thenCons = new AssertListCmd(new AssertTrueCmd(thenAss));
+		AssertListCmd elseCons = new AssertListCmd(new AssertTrueCmd(elseAss));
 		Rule r = new Rule(cond, thenCons, elseCons);
 		assertThat(r, hasProperty("condition", theInstance(cond)));
 	}
@@ -54,8 +54,8 @@ public class RuleTest {
 	public void testGetElseConseguences(FuzzyBoolean value, String thenAss,
 			String elseAss) {
 		ConstantExp cond = new ConstantExp(value);
-		AssignListCmd thenCons = new AssignListCmd(new AssignTrueCmd(thenAss));
-		AssignListCmd elseCons = new AssignListCmd(new AssignTrueCmd(elseAss));
+		AssertListCmd thenCons = new AssertListCmd(new AssertTrueCmd(thenAss));
+		AssertListCmd elseCons = new AssertListCmd(new AssertTrueCmd(elseAss));
 		Rule r = new Rule(cond, thenCons, elseCons);
 		assertThat(r, hasProperty("elseConseguences", theInstance(elseCons)));
 	}
@@ -64,8 +64,8 @@ public class RuleTest {
 	public void testGetThenConseguences(FuzzyBoolean value, String thenAss,
 			String elseAss) {
 		ConstantExp cond = new ConstantExp(value);
-		AssignListCmd thenCons = new AssignListCmd(new AssignTrueCmd(thenAss));
-		AssignListCmd elseCons = new AssignListCmd(new AssignTrueCmd(elseAss));
+		AssertListCmd thenCons = new AssertListCmd(new AssertTrueCmd(thenAss));
+		AssertListCmd elseCons = new AssertListCmd(new AssertTrueCmd(elseAss));
 		Rule r = new Rule(cond, thenCons, elseCons);
 		assertThat(r, hasProperty("thenConseguences", theInstance(thenCons)));
 	}
@@ -73,8 +73,8 @@ public class RuleTest {
 	@Theory
 	public void testToString(FuzzyBoolean value, String thenAss, String elseAss) {
 		ConstantExp cond = new ConstantExp(value);
-		AssignListCmd thenCons = new AssignListCmd(new AssignTrueCmd(thenAss));
-		AssignListCmd elseCons = new AssignListCmd(new AssignFalseCmd(elseAss));
+		AssertListCmd thenCons = new AssertListCmd(new AssertTrueCmd(thenAss));
+		AssertListCmd elseCons = new AssertListCmd(new AssertFalseCmd(elseAss));
 		Rule r = new Rule(cond, thenCons, elseCons);
 		assertThat(r.toString(), equalTo("if " + value + " then [" + thenAss
 				+ "=true] else [" + elseAss + "=false]"));

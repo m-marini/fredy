@@ -13,7 +13,7 @@ import org.junit.runner.RunWith;
 @RunWith(Theories.class)
 public class AssignFalseCmdTest {
 	@DataPoints
-	public static String[] PERDICATE = { "A", "B" };
+	public static String[] PREDICATE = { "A", "B" };
 	@DataPoints
 	public static FuzzyBoolean[] VALUES = { FuzzyBoolean.FALSE,
 			FuzzyBoolean.QUITE_FALSE, FuzzyBoolean.UNKNOWN,
@@ -23,23 +23,23 @@ public class AssignFalseCmdTest {
 
 	@Theory
 	public void assignExecute(String predicate, FuzzyBoolean value) {
-		AssignFalseCmd cmd = new AssignFalseCmd(predicate);
+		AssertFalseCmd cmd = new AssertFalseCmd(predicate);
 		mock.push(value);
 		cmd.execute(mock);
 		assertThat(mock, hasProperty("size", equalTo(0)));
 		assertThat(mock, hasProperty("predicate", equalTo(predicate)));
-		assertThat(mock, hasProperty("value", equalTo(value)));
+		assertThat(mock, hasProperty("value", equalTo(value.not())));
 	}
 
 	@Theory
 	public void assignHasPredicate(String predicate) {
-		AssignFalseCmd cmd = new AssignFalseCmd(predicate);
+		AssertFalseCmd cmd = new AssertFalseCmd(predicate);
 		assertThat(cmd, hasProperty("predicate", equalTo(predicate)));
 	}
 
 	@Theory
 	public void assignToString(String predicate) {
-		AssignFalseCmd cmd = new AssignFalseCmd(predicate);
+		AssertFalseCmd cmd = new AssertFalseCmd(predicate);
 		assertThat(cmd.toString(), equalTo(predicate + "=false"));
 	}
 

@@ -24,6 +24,14 @@ public class SetImpl<E> implements FSet<E> {
 
 	/**
 	 * 
+	 * @param collection
+	 */
+	public SetImpl(Collection<E> collection) {
+		delegate = new HashSet<E>(collection);
+	}
+
+	/**
+	 * 
 	 * @param args
 	 */
 	public SetImpl(E... args) {
@@ -36,24 +44,75 @@ public class SetImpl<E> implements FSet<E> {
 	 * 
 	 * @param set
 	 */
-	public SetImpl(SetImpl<E> set) {
-		delegate = new HashSet<E>(set);
-	}
-
-	/**
-	 * 
-	 * @param set
-	 */
 	public SetImpl(Set<E> set) {
 		delegate = set;
 	}
 
 	/**
 	 * 
-	 * @param collection
+	 * @param set
 	 */
-	public SetImpl(Collection<E> collection) {
-		delegate = new HashSet<E>(collection);
+	public SetImpl(SetImpl<E> set) {
+		delegate = new HashSet<E>(set);
+	}
+
+	/**
+	 * @param e
+	 * @return
+	 * @see java.util.Set#add(java.lang.Object)
+	 */
+	@Override
+	public boolean add(E e) {
+		return delegate.add(e);
+	}
+
+	/**
+	 * @param c
+	 * @return
+	 * @see java.util.Set#addAll(java.util.Collection)
+	 */
+	@Override
+	public boolean addAll(Collection<? extends E> c) {
+		return delegate.addAll(c);
+	}
+
+	/**
+	 * 
+	 * @see java.util.Set#clear()
+	 */
+	@Override
+	public void clear() {
+		delegate.clear();
+	}
+
+	/**
+	 * @param o
+	 * @return
+	 * @see java.util.Set#contains(java.lang.Object)
+	 */
+	@Override
+	public boolean contains(Object o) {
+		return delegate.contains(o);
+	}
+
+	/**
+	 * @param c
+	 * @return
+	 * @see java.util.Set#containsAll(java.util.Collection)
+	 */
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		return delegate.containsAll(c);
+	}
+
+	/**
+	 * @param o
+	 * @return
+	 * @see java.util.Set#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object o) {
+		return delegate.equals(o);
 	}
 
 	/**
@@ -61,23 +120,13 @@ public class SetImpl<E> implements FSet<E> {
 	 * @param f
 	 * @return
 	 */
-	public <T> SetImpl<T> map(Functor1<T, E> f) {
-		SetImpl<T> l = new SetImpl<T>();
-		for (E e : this)
-			l.add(f.apply(e));
-		return l;
-	}
-
-	/**
-	 * 
-	 * @param f
-	 * @return
-	 */
-	public <T> FList<T> mapToList(Functor1<T, E> f) {
-		FList<T> l = new ListImpl<T>();
-		for (E e : this)
-			l.add(f.apply(e));
-		return l;
+	@Override
+	public SetImpl<E> filter(Functor1<Boolean, E> f) {
+		SetImpl<E> r = new SetImpl<E>();
+		for (E i : this)
+			if (f.apply(i))
+				r.add(i);
+		return r;
 	}
 
 	/**
@@ -101,10 +150,74 @@ public class SetImpl<E> implements FSet<E> {
 	}
 
 	/**
+	 * @return
+	 * @see java.util.Set#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return delegate.hashCode();
+	}
+
+	/**
+	 * @see org.mmarini.functional.FSet#union(java.util.Collection)
+	 */
+	@Override
+	public FSet<E> intersect(Collection<E> collection) {
+		FSet<E> r = new SetImpl<E>(this);
+		r.retainAll(collection);
+		return r;
+	}
+
+	/**
+	 * @return
+	 * @see java.util.Set#isEmpty()
+	 */
+	@Override
+	public boolean isEmpty() {
+		return delegate.isEmpty();
+	}
+
+	/**
+	 * @return
+	 * @see java.util.Set#iterator()
+	 */
+	@Override
+	public Iterator<E> iterator() {
+		return delegate.iterator();
+	}
+
+	/**
+	 * 
+	 * @param f
+	 * @return
+	 */
+	@Override
+	public <T> SetImpl<T> map(Functor1<T, E> f) {
+		SetImpl<T> l = new SetImpl<T>();
+		for (E e : this)
+			l.add(f.apply(e));
+		return l;
+	}
+
+	/**
+	 * 
+	 * @param f
+	 * @return
+	 */
+	@Override
+	public <T> FList<T> mapToList(Functor1<T, E> f) {
+		FList<T> l = new ListImpl<T>();
+		for (E e : this)
+			l.add(f.apply(e));
+		return l;
+	}
+
+	/**
 	 * 
 	 * @param c
 	 * @return
 	 */
+	@Override
 	public E min(Comparator<E> c) {
 		E m = null;
 		for (E i : this)
@@ -114,55 +227,59 @@ public class SetImpl<E> implements FSet<E> {
 	}
 
 	/**
-	 * 
-	 * @param f
-	 * @return
+	 * @see org.mmarini.functional.FSet#notIn(java.util.Collection)
 	 */
-	public SetImpl<E> filter(Functor1<Boolean, E> f) {
-		SetImpl<E> r = new SetImpl<E>();
-		for (E i : this)
-			if (f.apply(i))
-				r.add(i);
+	@Override
+	public FSet<E> notIn(final Collection<E> collection) {
+		FSet<E> r = new SetImpl<E>(this);
+		r.removeAll(collection);
 		return r;
+	}
+
+	/**
+	 * @param o
+	 * @return
+	 * @see java.util.Set#remove(java.lang.Object)
+	 */
+	@Override
+	public boolean remove(Object o) {
+		return delegate.remove(o);
+	}
+
+	/**
+	 * @param c
+	 * @return
+	 * @see java.util.Set#removeAll(java.util.Collection)
+	 */
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		return delegate.removeAll(c);
+	}
+
+	/**
+	 * @param c
+	 * @return
+	 * @see java.util.Set#retainAll(java.util.Collection)
+	 */
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		return delegate.retainAll(c);
 	}
 
 	/**
 	 * @return
 	 * @see java.util.Set#size()
 	 */
+	@Override
 	public int size() {
 		return delegate.size();
 	}
 
 	/**
 	 * @return
-	 * @see java.util.Set#isEmpty()
-	 */
-	public boolean isEmpty() {
-		return delegate.isEmpty();
-	}
-
-	/**
-	 * @param o
-	 * @return
-	 * @see java.util.Set#contains(java.lang.Object)
-	 */
-	public boolean contains(Object o) {
-		return delegate.contains(o);
-	}
-
-	/**
-	 * @return
-	 * @see java.util.Set#iterator()
-	 */
-	public Iterator<E> iterator() {
-		return delegate.iterator();
-	}
-
-	/**
-	 * @return
 	 * @see java.util.Set#toArray()
 	 */
+	@Override
 	public Object[] toArray() {
 		return delegate.toArray();
 	}
@@ -172,86 +289,26 @@ public class SetImpl<E> implements FSet<E> {
 	 * @return
 	 * @see java.util.Set#toArray(java.lang.Object[])
 	 */
+	@Override
 	public <T> T[] toArray(T[] a) {
 		return delegate.toArray(a);
 	}
 
 	/**
-	 * @param e
-	 * @return
-	 * @see java.util.Set#add(java.lang.Object)
+	 * @see java.lang.Object#toString()
 	 */
-	public boolean add(E e) {
-		return delegate.add(e);
+	@Override
+	public String toString() {
+		return String.valueOf(delegate);
 	}
 
 	/**
-	 * @param o
-	 * @return
-	 * @see java.util.Set#remove(java.lang.Object)
+	 * @see org.mmarini.functional.FSet#union(java.util.Collection)
 	 */
-	public boolean remove(Object o) {
-		return delegate.remove(o);
-	}
-
-	/**
-	 * @param c
-	 * @return
-	 * @see java.util.Set#containsAll(java.util.Collection)
-	 */
-	public boolean containsAll(Collection<?> c) {
-		return delegate.containsAll(c);
-	}
-
-	/**
-	 * @param c
-	 * @return
-	 * @see java.util.Set#addAll(java.util.Collection)
-	 */
-	public boolean addAll(Collection<? extends E> c) {
-		return delegate.addAll(c);
-	}
-
-	/**
-	 * @param c
-	 * @return
-	 * @see java.util.Set#retainAll(java.util.Collection)
-	 */
-	public boolean retainAll(Collection<?> c) {
-		return delegate.retainAll(c);
-	}
-
-	/**
-	 * @param c
-	 * @return
-	 * @see java.util.Set#removeAll(java.util.Collection)
-	 */
-	public boolean removeAll(Collection<?> c) {
-		return delegate.removeAll(c);
-	}
-
-	/**
-	 * 
-	 * @see java.util.Set#clear()
-	 */
-	public void clear() {
-		delegate.clear();
-	}
-
-	/**
-	 * @param o
-	 * @return
-	 * @see java.util.Set#equals(java.lang.Object)
-	 */
-	public boolean equals(Object o) {
-		return delegate.equals(o);
-	}
-
-	/**
-	 * @return
-	 * @see java.util.Set#hashCode()
-	 */
-	public int hashCode() {
-		return delegate.hashCode();
+	@Override
+	public FSet<E> union(Collection<E> collection) {
+		FSet<E> r = new SetImpl<E>(this);
+		r.addAll(collection);
+		return r;
 	}
 }

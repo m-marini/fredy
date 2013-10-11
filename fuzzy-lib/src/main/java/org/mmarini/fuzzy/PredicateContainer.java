@@ -3,13 +3,13 @@
  */
 package org.mmarini.fuzzy;
 
-import java.util.Set;
+import org.mmarini.functional.FSet;
 
 /**
  * @author US00852
  * 
  */
-public interface AssignCmd extends Command {
+public interface PredicateContainer {
 
 	/**
 	 * 
@@ -22,6 +22,5 @@ public interface AssignCmd extends Command {
 	 * 
 	 * @param predicates
 	 */
-	public abstract Set<String> mapToPredicate(Set<String> predicates);
-
+	public abstract FSet<String> mapToPredicate(FSet<String> predicates);
 }

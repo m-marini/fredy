@@ -39,29 +39,6 @@ public class Relation {
 	}
 
 	/**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Link [source=").append(source).append(", target=")
-				.append(target).append("]");
-		return builder.toString();
-	}
-
-	/**
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((source == null) ? 0 : source.hashCode());
-		result = prime * result + ((target == null) ? 0 : target.hashCode());
-		return result;
-	}
-
-	/**
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -98,6 +75,28 @@ public class Relation {
 	 */
 	public String getTarget() {
 		return target;
+	}
+
+	/**
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((source == null) ? 0 : source.hashCode());
+		result = prime * result + ((target == null) ? 0 : target.hashCode());
+		return result;
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append(source).append(" => ").append(target);
+		return builder.toString();
 	}
 
 }

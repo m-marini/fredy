@@ -3,7 +3,8 @@
  */
 package org.mmarini.fuzzy;
 
-import java.util.Set;
+import org.mmarini.functional.FSet;
+import org.mmarini.functional.SetImpl;
 
 /**
  * @author US00852
@@ -37,7 +38,7 @@ public class PredicateExp implements Expression {
 	}
 
 	/**
-	 * @see org.mmarini.fuzzy.Expression#hasPredicate(java.lang.String)
+	 * @see org.mmarini.fuzzy.PredicateContainer#hasPredicate(java.lang.String)
 	 */
 	@Override
 	public boolean hasPredicate(String p) {
@@ -45,10 +46,13 @@ public class PredicateExp implements Expression {
 	}
 
 	/**
-	 * @see org.mmarini.fuzzy.Command#mapToPredicate(java.util.Set)
+	 * @see org.mmarini.fuzzy.PredicateContainer#mapToPredicate(org.mmarini.functional
+	 *      .FSet)
 	 */
 	@Override
-	public Set<String> mapToPredicate(Set<String> predicates) {
+	public FSet<String> mapToPredicate(FSet<String> predicates) {
+		if (predicates == null)
+			predicates = new SetImpl<String>();
 		predicates.add(predicate);
 		return predicates;
 	}

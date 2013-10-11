@@ -4,21 +4,22 @@
 package org.mmarini.fuzzy;
 
 import java.util.ArrayList;
-import java.util.Set;
+
+import org.mmarini.functional.FSet;
 
 /**
  * @author US00852
  * 
  */
-public class AssignListCmd extends ArrayList<AssignCmd> implements AssignCmd {
+public class AssertListCmd extends ArrayList<AssertCmd> implements AssertCmd {
 	private static final long serialVersionUID = -2409407796651355076L;
 
 	/**
 	 * 
 	 * @param commands
 	 */
-	public AssignListCmd(AssignCmd... commands) {
-		for (AssignCmd c : commands) {
+	public AssertListCmd(AssertCmd... commands) {
+		for (AssertCmd c : commands) {
 			add(c);
 		}
 	}
@@ -29,18 +30,18 @@ public class AssignListCmd extends ArrayList<AssignCmd> implements AssignCmd {
 	@Override
 	public void execute(ExecutionContext ctx) {
 		FuzzyBoolean value = ctx.pop();
-		for (AssignCmd c : this) {
+		for (AssertCmd c : this) {
 			ctx.push(value);
 			c.execute(ctx);
 		}
 	}
 
 	/**
-	 * @see org.mmarini.fuzzy.AssignCmd#hasPredicate(java.lang.String)
+	 * @see org.mmarini.fuzzy.PredicateContainer#hasPredicate(java.lang.String)
 	 */
 	@Override
 	public boolean hasPredicate(String predicate) {
-		for (AssignCmd p : this) {
+		for (AssertCmd p : this) {
 			if (p.hasPredicate(predicate))
 				return true;
 		}
@@ -48,11 +49,12 @@ public class AssignListCmd extends ArrayList<AssignCmd> implements AssignCmd {
 	}
 
 	/**
-	 * @see org.mmarini.fuzzy.Command#mapToPredicate(java.util.Set)
+	 * @see org.mmarini.fuzzy.PredicateContainer#mapToPredicate(org.mmarini.functional
+	 *      .FSet)
 	 */
 	@Override
-	public Set<String> mapToPredicate(Set<String> predicates) {
-		for (AssignCmd p : this) {
+	public FSet<String> mapToPredicate(FSet<String> predicates) {
+		for (AssertCmd p : this) {
 			predicates = p.mapToPredicate(predicates);
 		}
 		return predicates;

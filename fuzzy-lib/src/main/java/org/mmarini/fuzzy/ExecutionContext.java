@@ -14,14 +14,14 @@ public interface ExecutionContext {
 	 * 
 	 * @param predicate
 	 */
-	public abstract void assignFalse(String predicate);
+	public abstract void assertFalse(String predicate);
 
 	/**
 	 * Assign the value to a predicate
 	 * 
 	 * @param predicate
 	 */
-	public abstract void assignTrue(String predicate);
+	public abstract void assertTrue(String predicate);
 
 	/**
 	 * Pop a value from context

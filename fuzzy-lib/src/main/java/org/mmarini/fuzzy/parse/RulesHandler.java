@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import org.mmarini.fuzzy.AssignCmd;
-import org.mmarini.fuzzy.AssignListCmd;
+import org.mmarini.fuzzy.AssertCmd;
+import org.mmarini.fuzzy.AssertListCmd;
 import org.mmarini.fuzzy.Expression;
 import org.mmarini.fuzzy.FuzzyBoolean;
 import org.mmarini.fuzzy.Rule;
@@ -30,17 +30,17 @@ public class RulesHandler extends DefaultHandler {
 	private StringBuilder name;
 	private Map<String, ParseState> stateMap;
 	private Expression condition;
-	private AssignListCmd thenConsequences;
-	private AssignListCmd elseConsequences;
+	private AssertListCmd thenConsequences;
+	private AssertListCmd elseConsequences;
 	private Queue<Expression> expStack;
 	private Queue<Queue<Expression>> listStack;
-	private List<AssignCmd> cmdStack;
+	private List<AssertCmd> cmdStack;
 
 	/**
 	 * 
 	 */
 	public RulesHandler() {
-		cmdStack = new ArrayList<AssignCmd>();
+		cmdStack = new ArrayList<AssertCmd>();
 		rules = new ArrayList<Rule>();
 		name = new StringBuilder();
 		listStack = Collections
@@ -125,7 +125,7 @@ public class RulesHandler extends DefaultHandler {
 	/**
 	 * @return the elseConsequences
 	 */
-	public AssignListCmd getElseConsequences() {
+	public AssertListCmd getElseConsequences() {
 		return elseConsequences;
 	}
 
@@ -146,7 +146,7 @@ public class RulesHandler extends DefaultHandler {
 	/**
 	 * @return the thenConsequences
 	 */
-	public AssignListCmd getThenConsequences() {
+	public AssertListCmd getThenConsequences() {
 		return thenConsequences;
 	}
 
@@ -161,9 +161,9 @@ public class RulesHandler extends DefaultHandler {
 	 * 
 	 * @return
 	 */
-	public AssignListCmd popAssignList() {
-		AssignListCmd assList = new AssignListCmd(
-				cmdStack.toArray(new AssignCmd[0]));
+	public AssertListCmd popAssignList() {
+		AssertListCmd assList = new AssertListCmd(
+				cmdStack.toArray(new AssertCmd[0]));
 		cmdStack.clear();
 		return assList;
 	}
@@ -183,7 +183,7 @@ public class RulesHandler extends DefaultHandler {
 	 * 
 	 * @param assignCmd
 	 */
-	public void pushAssign(AssignCmd assignCmd) {
+	public void pushAssign(AssertCmd assignCmd) {
 		cmdStack.add(assignCmd);
 	}
 
@@ -230,7 +230,7 @@ public class RulesHandler extends DefaultHandler {
 	 * @param elseConsequences
 	 *            the elseConsequences to set
 	 */
-	public void setElseConsequences(AssignListCmd elseConsequences) {
+	public void setElseConsequences(AssertListCmd elseConsequences) {
 		this.elseConsequences = elseConsequences;
 	}
 
@@ -238,7 +238,7 @@ public class RulesHandler extends DefaultHandler {
 	 * @param thenConsequences
 	 *            the thenConsequences to set
 	 */
-	public void setThenConsequences(AssignListCmd thenConsequences) {
+	public void setThenConsequences(AssertListCmd thenConsequences) {
 		this.thenConsequences = thenConsequences;
 	}
 
