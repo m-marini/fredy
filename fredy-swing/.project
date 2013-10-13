@@ -3,7 +3,6 @@
 	<name>fredy-swing</name>
 	<comment></comment>
 	<projects>
-		<project>fuzzyLib</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
