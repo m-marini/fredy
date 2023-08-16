@@ -1,0 +1,88 @@
+---
+rules:
+- if:
+    or:
+    - predicate: peli
+    - predicate: latte
+  then:
+  - assign: mammifero
+- if:
+    or:
+		- predicate: piume
+    - and:
+      - predicate: vola
+      - predicate: uova
+	then:
+	- assign: uccello
+- if:
+	  or:
+		- predicate: carne
+    - and:
+			- predicate: denti
+			- predicate: occhi
+			- predicate: artigli
+	then:
+	- assign: carnivoro
+- if:
+	  or:
+		- and:
+			- predicate: mammifero
+  		- predicate: zoccoli
+		- and:
+			- predicate: mammifero
+	  	- predicate: ruminante
+	then:
+		- assign: ungulato
+- if:
+  and:
+    - predicate: mammifero
+    - predicate: carnivoro
+    - predicate: fulvo
+    - predicate: macchie
+  then:
+  - assign: ghepardo
+- if:
+    and:
+    - predicate: mammifero
+    - predicate: carnivoro
+    - predicate: fulvo
+    - predicate: strisce
+	then:
+	- assign: tigre
+- if:
+    and:
+    - predicate: macchie
+    - predicate: zampe
+    - predicate: ungulato
+    - predicate: collo
+  then:
+  - assign: giraffa
+- if:
+    and:
+    - predicate: strisce
+    - predicate: ungulato
+  then:
+  - assign: zebra
+- if:
+    and:
+    - predicate: collo
+    - predicate: uccello
+    - predicate: bianconero
+    - not:
+      predicate: vola
+	then:
+			- assign: struzzo
+- if:
+    and:
+    - not:
+        predicate: vola
+    - predicate: uccello
+    - predicate: nuota
+  then:
+  - assign: pinguino
+- if:
+    and:
+    - predicate: vola
+    - predicate: uccello
+	then:
+	- assign: albatro

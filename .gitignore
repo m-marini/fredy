@@ -1,0 +1,7 @@
+/.idea/*
+/fredy-gtk/CMakeFiles/*
+/fredy-gtk/CMakeCache.txt
+/fredy-gtk/Makefile
+/fredy-gtk/cmake_install.cmake
+/fredy-gtk/fredy
+/fredy-swing/.settings/org.eclipse.jdt.apt.core.prefs
