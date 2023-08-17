@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased] yyyy-mm-dd
 
+### ADDED
+
+- Issue #4: CD CI
+
 ### CHANGED
 
 - Issue #1: Immutable inference model
