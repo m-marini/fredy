@@ -1,0 +1,118 @@
+---
+mammifero:
+  type: or
+  expressions:
+    - type: predicate
+      id: peli
+    - type: predicate
+      id: latte
+uccello:
+  type: or
+  expressions:
+    - type: predicate
+      id: piume
+    - type: and
+      expressions:
+        - type: predicate
+          id: vola
+        - type: predicate
+          id: uova
+carnivoro:
+  type: or
+  expressions:
+    - type: predicate
+      id: carne
+    - type: and
+      expressions:
+        - type: predicate
+          id: denti
+        - type: predicate
+          id: occhi
+        - type: predicate
+          id: artigli
+ungulato:
+  type: or
+  expressions:
+    - type: and
+      expressions:
+        - type: predicate
+          id: mammifero
+        - type: predicate
+          id: zoccoli
+    - type: and
+      expressions:
+        - type: predicate
+          id: mammifero
+        - type: predicate
+          id: ruminante
+ghepardo:
+  type: and
+  expressions:
+    - type: predicate
+      id: mammifero
+    - type: predicate
+      id: carnivoro
+    - type: predicate
+      id: fulvo
+    - type: predicate
+      id: macchie
+tigre:
+  type: and
+  expressions:
+    - type: predicate
+      id: mammifero
+    - type: predicate
+      id: carnivoro
+    - type: predicate
+      id: fulvo
+    - type: predicate
+      id: strisce
+giraffa:
+  type: and
+  expressions:
+    - type: predicate
+      id: macchie
+    - type: predicate
+      id: zampe
+    - type: predicate
+      id: ungulato
+    - type: predicate
+      id: collo
+zebra:
+  type: and
+  expressions:
+    - type: predicate
+      id: striscie
+    - type: predicate
+      id: ungulato
+struzzo:
+  type: and
+  expressions:
+    - type: predicate
+      id: collo
+    - type: predicate
+      id: uccello
+    - type: predicate
+      id: bianconero
+    - type: not
+      expression:
+        type: predicate
+        id: vola
+pinguino:
+  type: and
+  expressions:
+    - type: not
+      expression:
+        type: predicate
+        id: vola
+    - type: predicate
+      id: uccello
+    - type: predicate
+      id: nuota
+albatro:
+  type: and
+  expressions:
+    - type: predicate
+      id: vola
+    - type: predicate
+      id: uccello

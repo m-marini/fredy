@@ -1,0 +1,116 @@
+/*
+ * Copyright (c) 2023 Marco Marini, marco.marini@mmarini.org
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ *
+ *    END OF TERMS AND CONDITIONS
+ */
+
+package org.mmarini.fredy2.model;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import org.junit.jupiter.api.Test;
+import org.mmarini.yaml.schema.Locator;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mmarini.TestFunctions.text;
+import static org.mmarini.yaml.Utils.fromText;
+import static org.mockito.Mockito.*;
+
+class PredicateTest {
+
+    @Test
+    void createDependencies() {
+        // Given ...
+        Predicate p = new Predicate("a");
+        Set<String> deps = new HashSet<>();
+
+        // When ...
+        p.createDependencies(deps);
+
+        // Then ...
+        assertThat(deps, containsInAnyOrder("a"));
+    }
+
+    @Test
+    void evaluateExits() {
+        // Given ...
+        Predicate p = new Predicate("a");
+        Model model = mock(Model.class);
+
+        Evidences evidences = mock(Evidences.class);
+        when(evidences.contains("a")).thenReturn(true);
+        when(evidences.get("a")).thenReturn(0.3);
+
+        // When ...
+        double value = p.evaluate(model, evidences);
+
+        // Then ...
+        assertEquals(0.3, value);
+        verify(evidences).contains("a");
+        verify(evidences).get("a");
+        verifyNoInteractions(model);
+    }
+
+    @Test
+    void evaluateNoExits() {
+        // Given ...
+        Predicate p = new Predicate("a");
+
+        Evidences evidences = mock(Evidences.class);
+        when(evidences.contains("a")).thenReturn(false);
+
+        Model model = mock(Model.class);
+        when(model.evaluate("a", evidences)).thenReturn(0.3);
+
+        // When ...
+        double value = p.evaluate(model, evidences);
+
+        // Then ...
+        assertEquals(0.3, value);
+        verify(evidences).contains("a");
+        verify(model).evaluate(eq("a"), same(evidences));
+    }
+
+    @Test
+    void fromJson() throws IOException {
+        // Given ...
+        JsonNode node = fromText(text(
+                "---",
+                "id: a"
+        ));
+
+        // When ...
+        Predicate p = Predicate.fromJson(node, Locator.root());
+
+        // Then ...
+        assertThat(p, hasToString(
+                matchesPattern("'a'")
+        ));
+    }
+}
