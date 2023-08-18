@@ -56,8 +56,47 @@ class InferenceNodeTest {
                 "          id: a",
                 "      - type: predicate",
                 "        id: b",
-                "  - type: predicate",
-                "    id: c"
+                "  - type: somewhat",
+                "    expression:",
+                "      type: very",
+                "      expression:",
+                "        type: predicate",
+                "        id: c",
+                "  - type: iff",
+                "    expression1:",
+                "      type: predicate",
+                "      id: d",
+                "    expression2:",
+                "      type: predicate",
+                "      id: e",
+                "  - type: implies",
+                "    expression1:",
+                "      type: predicate",
+                "      id: e",
+                "    expression2:",
+                "      type: predicate",
+                "      id: f",
+                "  - type: isParadox",
+                "    assertion:",
+                "      type: predicate",
+                "      id: g",
+                "    negation:",
+                "      type: predicate",
+                "      id: h",
+                "  - type: isCertain",
+                "    assertion:",
+                "      type: predicate",
+                "      id: g",
+                "    negation:",
+                "      type: predicate",
+                "      id: h",
+                "  - type: isTrue",
+                "    assertion:",
+                "      type: predicate",
+                "      id: i",
+                "    negation:",
+                "      type: predicate",
+                "      id: j"
         ));
 
         // When ...
@@ -65,7 +104,14 @@ class InferenceNodeTest {
 
         // Then ...
         assertThat(p, hasToString(
-                matchesPattern("or\\(and\\(not\\('a'\\), 'b'\\), 'c'\\)")
+                matchesPattern("or\\(and\\(not\\('a'\\), 'b'\\), " +
+                        "somewhat\\(very\\('c'\\)\\), " +
+                        "iff\\('d', 'e'\\), " +
+                        "implies\\('e', 'f'\\), " +
+                        "isParadox\\('g', 'h'\\), " +
+                        "isCertain\\('g', 'h'\\), " +
+                        "isTrue\\('i', 'j'\\)" +
+                        "\\)")
         ));
     }
 }

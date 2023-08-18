@@ -35,17 +35,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
 
 /**
- * Gets the iff of expression
+ * Gets the paradox of expression
  */
-public class Iff implements InferenceNode {
+public class IsParadox implements InferenceNode {
     public static final Validator JSON_SPEC = objectPropertiesRequired(Map.of(
-                    "expression1", InferenceNode.JSON_SPEC,
-                    "expression2", InferenceNode.JSON_SPEC),
-            List.of("expression1", "expression2")
+                    "assertion", InferenceNode.JSON_SPEC,
+                    "negation", InferenceNode.JSON_SPEC),
+            List.of("assertion", "negation")
     );
 
     /**
@@ -54,42 +55,42 @@ public class Iff implements InferenceNode {
      * @param root    the document root
      * @param locator the locator
      */
-    public static Iff fromJson(JsonNode root, Locator locator) {
+    public static IsParadox fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
-        InferenceNode exp1 = InferenceNode.fromJson(root, locator.path("expression1"));
-        InferenceNode exp2 = InferenceNode.fromJson(root, locator.path("expression2"));
-        return new Iff(exp1, exp2);
+        InferenceNode exp1 = InferenceNode.fromJson(root, locator.path("assertion"));
+        InferenceNode exp2 = InferenceNode.fromJson(root, locator.path("negation"));
+        return new IsParadox(exp1, exp2);
     }
 
-    private final InferenceNode expression1;
-    private final InferenceNode expression2;
+    private final InferenceNode assertion;
+    private final InferenceNode negation;
 
     /**
      * Creates the iff node
      *
-     * @param expression1 the first expression
-     * @param expression2 the second expression
+     * @param assertion the assertion expression
+     * @param negation  the negation expression
      */
-    public Iff(InferenceNode expression1, InferenceNode expression2) {
-        this.expression1 = requireNonNull(expression1);
-        this.expression2 = requireNonNull(expression2);
+    public IsParadox(InferenceNode assertion, InferenceNode negation) {
+        this.assertion = requireNonNull(assertion);
+        this.negation = requireNonNull(negation);
     }
 
     @Override
     public void createDependencies(Set<String> dependencies) {
-        expression1.createDependencies(dependencies);
-        expression2.createDependencies(dependencies);
+        assertion.createDependencies(dependencies);
+        negation.createDependencies(dependencies);
     }
 
     @Override
     public double evaluate(Model model, Evidences evidences) {
-        double a = expression1.evaluate(model, evidences);
-        double b = expression2.evaluate(model, evidences);
-        return 1 - Math.abs(a - b);
+        double a = assertion.evaluate(model, evidences);
+        double b = negation.evaluate(model, evidences);
+        return max(0, a + b - 1);
     }
 
     @Override
     public String toString() {
-        return "iff(" + expression1 + ", " + expression2 + ")";
+        return "isParadox(" + assertion + ", " + negation + ")";
     }
 }

@@ -70,7 +70,6 @@ public class Model {
      * @param assertions the assignment
      */
     public static Model create(List<Assertion> assertions) {
-        // TODO flat multiple assertions
         Map<String, Set<String>> dependencies = createDependencies(assertions);
         validate(dependencies);
         Set<String> hypothesis = findHypothesis(dependencies);
