@@ -30,14 +30,14 @@ package org.mmarini.fredy2.model;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.yaml.schema.Locator;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import static java.lang.Math.sqrt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,71 +46,38 @@ import static org.mmarini.yaml.Utils.fromText;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class OrTest implements TestUtils {
+class SomeWhatTest implements TestUtils {
 
     @Test
     void createDependencies() {
         // Given ...
-        Or p = Or.create(
-                new Predicate("a"),
-                new Predicate("b")
-        );
+        Somewhat p = new Somewhat(new Predicate("a"));
         Set<String> deps = new HashSet<>();
 
         // When ...
         p.createDependencies(deps);
 
         // Then ...
-        assertThat(deps, containsInAnyOrder("a", "b"));
+        assertThat(deps, containsInAnyOrder("a"));
     }
 
     @ParameterizedTest
-    @CsvSource({
-            "   0,    0,    0",
-            "   0, 0.25, 0.25",
-            "   0,  0.5,  0.5",
-            "   0, 0.75, 0.75",
-            "   0,    1,    1",
-            "0.25,    0, 0.25",
-            "0.25, 0.25, 0.25",
-            "0.25,  0.5,  0.5",
-            "0.25, 0.75, 0.75",
-            "0.25,    1,    1",
-            " 0.5,    0,  0.5",
-            " 0.5, 0.25,  0.5",
-            " 0.5,  0.5,  0.5",
-            " 0.5, 0.75, 0.75",
-            " 0.5,    1,    1",
-            "0.75,    0, 0.75",
-            "0.75, 0.25, 0.75",
-            "0.75,  0.5, 0.75",
-            "0.75, 0.75, 0.75",
-            "0.75,    1,    1",
-            "   1,    0,    1",
-            "   1, 0.25,    1",
-            "   1,  0.5,    1",
-            "   1, 0.75,    1",
-            "   1,    1,    1",
-    })
-    void evaluate(double a, double b, double expected) {
+    @MethodSource("singleValues")
+    void evaluate(double a) {
         // Given ...
-        Or p = Or.create(
-                new Predicate("a"),
-                new Predicate("b"));
+        Somewhat p = new Somewhat(new Predicate("a"));
 
-        Model model = Mockito.mock(Model.class);
+        Model model = mock(Model.class);
 
         Evidences evidences = mock(Evidences.class);
         when(evidences.contains("a")).thenReturn(true);
-        when(evidences.contains("b")).thenReturn(true);
         when(evidences.get("a")).thenReturn(a);
-        when(evidences.get("b")).thenReturn(b);
 
         // When ...
         double value = p.evaluate(model, evidences);
 
         // Then ...
-        assertEquals(expected, value);
+        assertEquals(sqrt(a), value);
     }
 
     @Test
@@ -118,19 +85,17 @@ class OrTest implements TestUtils {
         // Given ...
         JsonNode node = fromText(text(
                 "---",
-                "expressions:",
-                "- type: predicate",
-                "  id: a",
-                "- type: predicate",
-                "  id: b"
+                "expression:",
+                "  type: predicate",
+                "  id: a"
         ));
 
         // When ...
-        Or p = Or.fromJson(node, Locator.root());
+        Somewhat p = Somewhat.fromJson(node, Locator.root());
 
         // Then ...
         assertThat(p, hasToString(
-                matchesPattern("or\\('a', 'b'\\)")
+                matchesPattern("somewhat\\('a'\\)")
         ));
     }
 }

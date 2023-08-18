@@ -29,6 +29,8 @@ package org.mmarini.fredy2.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
@@ -37,10 +39,13 @@ import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mmarini.TestFunctions.text;
 import static org.mmarini.yaml.Utils.fromText;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-class NotTest {
+class NotTest implements TestUtils {
 
     @Test
     void createDependencies() {
@@ -53,6 +58,25 @@ class NotTest {
 
         // Then ...
         assertThat(deps, containsInAnyOrder("a"));
+    }
+
+    @ParameterizedTest
+    @MethodSource("singleValues")
+    void evaluate(double a) {
+        // Given ...
+        Not p = new Not(new Predicate("a"));
+
+        Model model = mock(Model.class);
+
+        Evidences evidences = mock(Evidences.class);
+        when(evidences.contains("a")).thenReturn(true);
+        when(evidences.get("a")).thenReturn(a);
+
+        // When ...
+        double value = p.evaluate(model, evidences);
+
+        // Then ...
+        assertEquals(1 - a, value);
     }
 
     @Test

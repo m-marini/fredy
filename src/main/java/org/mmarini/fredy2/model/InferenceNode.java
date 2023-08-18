@@ -85,22 +85,24 @@ public interface InferenceNode {
     /**
      * The builders
      */
-    Map<String, BiFunction<JsonNode, Locator, InferenceNode>> BUILDERS = Map.of(
-            "predicate", Predicate::fromJson,
-            "not", Not::fromJson,
-            "and", And::fromJson,
-            "or", Or::fromJson,
-            "implies", Implies::fromJson,
-            "iff", Iff::fromJson,
-            "very", Very::fromJson,
-            "somewhat", Somewhat::fromJson
+    Map<String, BiFunction<JsonNode, Locator, InferenceNode>> BUILDERS = Map.ofEntries(
+            Map.entry("predicate", Predicate::fromJson),
+            Map.entry("not", Not::fromJson),
+            Map.entry("and", And::fromJson),
+            Map.entry("or", Or::fromJson),
+            Map.entry("implies", Implies::fromJson),
+            Map.entry("iff", Iff::fromJson),
+            Map.entry("isParadox", IsParadox::fromJson),
+            Map.entry("isTrue", IsTrue::fromJson),
+            Map.entry("isCertain", IsCertain::fromJson),
+            Map.entry("very", Very::fromJson),
+            Map.entry("somewhat", Somewhat::fromJson)
     );
-
 
     Validator JSON_SPEC = objectPropertiesRequired(Map.of(
-                    "type", string(values(BUILDERS.keySet().toArray(String[]::new)))),
+                    "type", string(values(BUILDERS.keySet().stream()
+                            .sorted()
+                            .toArray(String[]::new)))),
             List.of("type")
     );
-
-
 }

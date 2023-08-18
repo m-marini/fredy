@@ -29,6 +29,8 @@ package org.mmarini.fredy2.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
@@ -42,7 +44,7 @@ import static org.mmarini.TestFunctions.text;
 import static org.mmarini.yaml.Utils.fromText;
 import static org.mockito.Mockito.*;
 
-class PredicateTest {
+class PredicateTest implements TestUtils {
 
     @Test
     void createDependencies() {
@@ -57,28 +59,30 @@ class PredicateTest {
         assertThat(deps, containsInAnyOrder("a"));
     }
 
-    @Test
-    void evaluateExits() {
+    @ParameterizedTest
+    @MethodSource("singleValues")
+    void evaluateExits(double a) {
         // Given ...
         Predicate p = new Predicate("a");
         Model model = mock(Model.class);
 
         Evidences evidences = mock(Evidences.class);
         when(evidences.contains("a")).thenReturn(true);
-        when(evidences.get("a")).thenReturn(0.3);
+        when(evidences.get("a")).thenReturn(a);
 
         // When ...
         double value = p.evaluate(model, evidences);
 
         // Then ...
-        assertEquals(0.3, value);
+        assertEquals(a, value);
         verify(evidences).contains("a");
         verify(evidences).get("a");
         verifyNoInteractions(model);
     }
 
-    @Test
-    void evaluateNoExits() {
+    @ParameterizedTest
+    @MethodSource("singleValues")
+    void evaluateNoExits(double a) {
         // Given ...
         Predicate p = new Predicate("a");
 
@@ -86,13 +90,13 @@ class PredicateTest {
         when(evidences.contains("a")).thenReturn(false);
 
         Model model = mock(Model.class);
-        when(model.evaluate("a", evidences)).thenReturn(0.3);
+        when(model.evaluate("a", evidences)).thenReturn(a);
 
         // When ...
         double value = p.evaluate(model, evidences);
 
         // Then ...
-        assertEquals(0.3, value);
+        assertEquals(a, value);
         verify(evidences).contains("a");
         verify(model).evaluate(eq("a"), same(evidences));
     }

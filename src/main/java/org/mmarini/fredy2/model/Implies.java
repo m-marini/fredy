@@ -39,7 +39,7 @@ import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
 
 /**
- * Gets the iff of expression
+ * Gets the implies of expression
  */
 public class Implies implements InferenceNode {
     public static final Validator JSON_SPEC = objectPropertiesRequired(Map.of(
@@ -56,17 +56,19 @@ public class Implies implements InferenceNode {
      */
     public static Implies fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
-        return new Implies(null, null);
+        InferenceNode exp1 = InferenceNode.fromJson(root, locator.path("expression1"));
+        InferenceNode exp2 = InferenceNode.fromJson(root, locator.path("expression2"));
+        return new Implies(exp1, exp2);
     }
 
     private final InferenceNode expression1;
     private final InferenceNode expression2;
 
     /**
-     * Creates the iff node
+     * Creates the implies node
      *
-     * @param expression1
-     * @param expression2
+     * @param expression1 the first expression
+     * @param expression2 the second expression
      */
     public Implies(InferenceNode expression1, InferenceNode expression2) {
         this.expression1 = requireNonNull(expression1);
@@ -82,7 +84,7 @@ public class Implies implements InferenceNode {
     @Override
     public double evaluate(Model model, Evidences evidences) {
         double a = expression1.evaluate(model, evidences);
-        double b = expression1.evaluate(model, evidences);
+        double b = expression2.evaluate(model, evidences);
         return Math.min(1 - a + b, 1.);
     }
 

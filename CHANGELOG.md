@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### ADDED
 
 - Issue #4: CD CI
+- Issue #3: Add fuzzy functions
 
 ### CHANGED
 

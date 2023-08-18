@@ -30,17 +30,13 @@ package org.mmarini.fredy2.model;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.mmarini.ArgumentsGenerator;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Stream;
 
-import static java.lang.Math.min;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -49,14 +45,7 @@ import static org.mmarini.yaml.Utils.fromText;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class AndTest {
-
-    static Stream<Arguments> pairValues() {
-        return ArgumentsGenerator.createStream(1234,
-                ArgumentsGenerator.uniform(0.0, 1.0),
-                ArgumentsGenerator.uniform(0.0, 1.0)
-        );
-    }
+class AndTest implements TestUtils {
 
     @Test
     void createDependencies() {
@@ -75,8 +64,34 @@ class AndTest {
     }
 
     @ParameterizedTest
-    @MethodSource("pairValues")
-    void evaluate(double a, double b) {
+    @CsvSource({
+            "   0,    0,    0",
+            "   0, 0.25,    0",
+            "   0,  0.5,    0",
+            "   0, 0.75,    0",
+            "   0,    1,    0",
+            "0.25,    0,    0",
+            "0.25, 0.25, 0.25",
+            "0.25,  0.5, 0.25",
+            "0.25, 0.75, 0.25",
+            "0.25,    1, 0.25",
+            " 0.5,    0,    0",
+            " 0.5, 0.25, 0.25",
+            " 0.5,  0.5,  0.5",
+            " 0.5, 0.75,  0.5",
+            " 0.5,    1,  0.5",
+            "0.75,    0,    0",
+            "0.75, 0.25, 0.25",
+            "0.75,  0.5,  0.5",
+            "0.75, 0.75, 0.75",
+            "0.75,    1, 0.75",
+            "   1,    0,    0",
+            "   1, 0.25, 0.25",
+            "   1,  0.5,  0.5",
+            "   1, 0.75, 0.75",
+            "   1,    1,    1",
+    })
+    void evaluate(double a, double b, double expected) {
         // Given ...
         And p = And.create(
                 new Predicate("a"),
@@ -94,7 +109,7 @@ class AndTest {
         double value = p.evaluate(model, evidences);
 
         // Then ...
-        assertEquals(min(a, b), value);
+        assertEquals(expected, value);
     }
 
     @Test

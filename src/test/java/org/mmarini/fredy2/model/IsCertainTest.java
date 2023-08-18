@@ -32,7 +32,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mmarini.yaml.schema.Locator;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -46,12 +45,12 @@ import static org.mmarini.yaml.Utils.fromText;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class OrTest implements TestUtils {
+class IsCertainTest implements TestUtils {
 
     @Test
     void createDependencies() {
         // Given ...
-        Or p = Or.create(
+        IsCertain p = new IsCertain(
                 new Predicate("a"),
                 new Predicate("b")
         );
@@ -72,33 +71,33 @@ class OrTest implements TestUtils {
             "   0, 0.75, 0.75",
             "   0,    1,    1",
             "0.25,    0, 0.25",
-            "0.25, 0.25, 0.25",
-            "0.25,  0.5,  0.5",
-            "0.25, 0.75, 0.75",
-            "0.25,    1,    1",
+            "0.25, 0.25,  0.5",
+            "0.25,  0.5, 0.75",
+            "0.25, 0.75,    1",
+            "0.25,    1, 0.75",
             " 0.5,    0,  0.5",
-            " 0.5, 0.25,  0.5",
-            " 0.5,  0.5,  0.5",
+            " 0.5, 0.25, 0.75",
+            " 0.5,  0.5,    1",
             " 0.5, 0.75, 0.75",
-            " 0.5,    1,    1",
+            " 0.5,    1,  0.5",
             "0.75,    0, 0.75",
-            "0.75, 0.25, 0.75",
+            "0.75, 0.25,    1",
             "0.75,  0.5, 0.75",
-            "0.75, 0.75, 0.75",
-            "0.75,    1,    1",
+            "0.75, 0.75,  0.5",
+            "0.75,    1, 0.25",
             "   1,    0,    1",
-            "   1, 0.25,    1",
-            "   1,  0.5,    1",
-            "   1, 0.75,    1",
-            "   1,    1,    1",
+            "   1, 0.25, 0.75",
+            "   1,  0.5,  0.5",
+            "   1, 0.75, 0.25",
+            "   1,    1,    0",
     })
     void evaluate(double a, double b, double expected) {
         // Given ...
-        Or p = Or.create(
+        IsCertain p = new IsCertain(
                 new Predicate("a"),
                 new Predicate("b"));
 
-        Model model = Mockito.mock(Model.class);
+        Model model = mock(Model.class);
 
         Evidences evidences = mock(Evidences.class);
         when(evidences.contains("a")).thenReturn(true);
@@ -118,19 +117,20 @@ class OrTest implements TestUtils {
         // Given ...
         JsonNode node = fromText(text(
                 "---",
-                "expressions:",
-                "- type: predicate",
+                "assertion:",
+                "  type: predicate",
                 "  id: a",
-                "- type: predicate",
+                "negation:",
+                "  type: predicate",
                 "  id: b"
         ));
 
         // When ...
-        Or p = Or.fromJson(node, Locator.root());
+        IsCertain p = IsCertain.fromJson(node, Locator.root());
 
         // Then ...
         assertThat(p, hasToString(
-                matchesPattern("or\\('a', 'b'\\)")
+                matchesPattern("isCertain\\('a', 'b'\\)")
         ));
     }
 }
