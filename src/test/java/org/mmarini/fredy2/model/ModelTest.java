@@ -29,13 +29,18 @@ package org.mmarini.fredy2.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static java.lang.Math.sqrt;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.*;
@@ -45,7 +50,7 @@ import static org.mmarini.fredy2.model.Evidences.UNKNOWN_VALUE;
 import static org.mmarini.yaml.Utils.fromText;
 import static org.mockito.Mockito.*;
 
-class ModelTest {
+class ModelTest implements TestUtils {
 
     @Test
     void applyEmpty() {
@@ -223,6 +228,181 @@ class ModelTest {
         assertThat(p.getAxioms(), contains("c"));
     }
 
+    @ParameterizedTest
+    @CsvSource({
+            "   0,    0,    0,    0",
+            "   0, 0.25,    1,    0",
+            "   0,  0.5,    1,    0",
+            "   0, 0.75,    1,    0",
+            "   0,    1,    1,    0",
+            "0.25,    0,    0,    1",
+            "0.25, 0.25,    0,    0",
+            "0.25,  0.5,    1,    0",
+            "0.25, 0.75,    1,    0",
+            "0.25,    1,    1,    0",
+            " 0.5,    0,    0,    1",
+            " 0.5, 0.25,    0,    1",
+            " 0.5,  0.5,    1,    1",
+            " 0.5, 0.75,    1,    0",
+            " 0.5,    1,    1,    0",
+            "0.75,    0,    0,    1",
+            "0.75, 0.25,    0,    1",
+            "0.75,  0.5,    0,    1",
+            "0.75, 0.75,    1,    1",
+            "0.75,    1,    1,    0",
+            "   1,    0,    0,    1",
+            "   1, 0.25,    0,    1",
+            "   1,  0.5,    0,    1",
+            "   1, 0.75,    0,    1",
+            "   1,    1,    1,    1",
+    })
+    void gradAnd(double b, double c, double a_b, double a_c) {
+        // Given ...
+        List<Assertion> assertions = List.of(
+                new Assertion("a", And.create(
+                        new Predicate("b"),
+                        new Predicate(("c"))
+                ))
+        );
+        Model model = Model.create(assertions);
+        Evidences axioms = model.createUnknownAxioms()
+                .put("b", b)
+                .put("c", c);
+        Evidences result = model.apply(axioms);
+
+        // When ...
+        Gradient grad = model.gradient(result);
+
+        // Then ...
+        assertThat(grad.get("a", "b"), closeTo(a_b, 1e-3));
+        assertThat(grad.get("a", "c"), closeTo(a_c, 1e-3));
+    }
+
+    @ParameterizedTest
+    @MethodSource("singleValues")
+    void gradNot(double c) {
+        // Given ...
+        List<Assertion> assertions = List.of(
+                new Assertion("a", new Not(new Predicate("b"))),
+                new Assertion("b", new Predicate("c"))
+        );
+        Model model = Model.create(assertions);
+        Evidences axioms = model.createUnknownAxioms()
+                .put("c", c);
+        Evidences result = model.apply(axioms);
+
+        // When ...
+        Gradient grad = model.gradient(result);
+        assertThat(grad.get("a", "c"), closeTo(-1, 1e-3));
+        assertThat(grad.get("b", "c"), closeTo(1, 1e-3));
+    }
+
+    @ParameterizedTest
+    @MethodSource("singleValues")
+    void gradPredicate(double c) {
+        // Given ...
+        List<Assertion> assertions = List.of(
+                new Assertion("a", new Predicate("b")),
+                new Assertion("b", new Predicate("c"))
+        );
+        Model model = Model.create(assertions);
+        Evidences axioms = model.createUnknownAxioms()
+                .put("c", c);
+        Evidences result = model.apply(axioms);
+
+        // When ...
+        Gradient grad = model.gradient(result);
+        assertThat(grad.get("a", "c"), closeTo(1, 1e-3));
+        assertThat(grad.get("b", "c"), closeTo(1, 1e-3));
+    }
+
+    @ParameterizedTest
+    @MethodSource("singleValues")
+    void gradSomewhat(double c) {
+        // Given ...
+        List<Assertion> assertions = List.of(
+                new Assertion("a", new Somewhat(new Predicate("c")))
+        );
+        Model model = Model.create(assertions);
+        Evidences axioms = model.createUnknownAxioms()
+                .put("c", c);
+        Evidences result = model.apply(axioms);
+
+        // When ...
+        Gradient grad = model.gradient(result);
+
+        // Then ...
+        double expected = c > 0 ? 1d / 2 / sqrt(c) : 1e3;
+        double actual = grad.get("a", "c");
+        assertThat(actual, closeTo(expected, 1e-3));
+    }
+
+    @ParameterizedTest
+    @MethodSource("singleValues")
+    void gradVery(double c) {
+        // Given ...
+        List<Assertion> assertions = List.of(
+                new Assertion("a", new Very(new Predicate("b"))),
+                new Assertion("b", new Predicate("c"))
+        );
+        Model model = Model.create(assertions);
+        Evidences axioms = model.createUnknownAxioms()
+                .put("c", c);
+        Evidences result = model.apply(axioms);
+
+        // When ...
+        Gradient grad = model.gradient(result);
+        assertThat(grad.get("a", "c"), closeTo(2 * c, 1e-3));
+        assertThat(grad.get("b", "c"), closeTo(1, 1e-3));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "   0,    0, b, c",
+            "   0, 0.25, b, c",
+            "   0,  0.5, b, c",
+            "   0, 0.75, b, c",
+            "   0,    1, b, c",
+            "0.25,    0, c, b",
+            "0.25, 0.25, b, c",
+            "0.25,  0.5, b, c",
+            "0.25, 0.75, b, c",
+            "0.25,    1, b, c",
+            " 0.5,    0, c, b",
+            " 0.5, 0.25, c, b",
+            " 0.5,  0.5, b, c",
+            " 0.5, 0.75, b, c",
+            " 0.5,    1, b, c",
+            "0.75,    0, c, b",
+            "0.75, 0.25, c, b",
+            "0.75,  0.5, c, b",
+            "0.75, 0.75, b, c",
+            "0.75,    1, b, c",
+            "   1,    0, c, b",
+            "   1, 0.25, c, b",
+            "   1,  0.5, c, b",
+            "   1, 0.75, c, b",
+            "   1,    1, b, c",
+    })
+    void sortedAxioms(double b, double c, String a1, String a2) {
+        // Given ...
+        List<Assertion> assertions = List.of(
+                new Assertion("a", And.create(
+                        new Predicate("b"),
+                        new Predicate("c")
+                ))
+        );
+        Model model = Model.create(assertions);
+        Evidences axioms = model.createUnknownAxioms()
+                .put("b", b)
+                .put("c", c);
+        Evidences result = model.apply(axioms);
+
+        // When ...
+        List<String> sorted = model.getSortedAxioms(result).collect(Collectors.toList());
+        assertThat(sorted, contains(a1, a2));
+    }
+
     @Test
     void validateAcycled() {
         Map<String, Set<String>> dependencies = Map.of(
@@ -241,6 +421,6 @@ class ModelTest {
                 "e", Set.of("b")
         );
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> Model.validate(dependencies));
-        assertThat(ex.getMessage(), matchesPattern("Cycles on nodes \\[b, e\\]"));
+        assertThat(ex.getMessage(), matchesPattern("Cycles on nodes \\[b, e]"));
     }
 }

@@ -111,7 +111,7 @@ public class Main {
      *
      */
     private void analyze() {
-        this.evidences = model.apply(evidences);
+        this.evidences = model.infer(evidences);
         hypothesisTableModel.setPredicates(evidences.getHypothesisList());
         inferencesTableModel.setPredicates(evidences.getInferencesList());
     }
@@ -284,7 +284,7 @@ public class Main {
      */
     private void setModel(Model model) {
         this.model = model;
-        this.evidences = model.createUnknownAxioms();
+        this.evidences = model.infer(model.createUnknownAxioms());
         hypothesisTableModel.setPredicates(evidences.getHypothesisList());
         inferencesTableModel.setPredicates(evidences.getInferencesList());
         axiomsTableModel.setPredicates(evidences.getAxiomsList());

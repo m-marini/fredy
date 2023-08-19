@@ -105,4 +105,6 @@ public interface InferenceNode {
                             .toArray(String[]::new)))),
             List.of("type")
     );
+
+
 }

@@ -15,4 +15,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### CHANGED
 
 - Issue #1: Immutable inference model
-
+- Issue #5: Sort axioms by gradient
