@@ -28,10 +28,13 @@
 package org.mmarini.fredy2.model;
 
 import org.mmarini.Tuple2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.lang.Math.abs;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -40,18 +43,19 @@ import static java.util.Objects.requireNonNull;
 public class Evidences {
 
     public static final double UNKNOWN_VALUE = 0.5;
+    private static final Logger logger = LoggerFactory.getLogger(Evidences.class);
 
     /**
      * Returns the empty evidences
      */
     public static Evidences empty() {
-        return new Evidences(new HashMap<>(), new HashSet<>(), new HashSet<>(), new HashSet<>());
+        return new Evidences(new HashMap<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     }
 
     private final Map<String, Double> evidences;
-    private final Set<String> hypothesis;
-    private final Set<String> inferences;
-    private final Set<String> axioms;
+    private final List<String> hypothesis;
+    private final List<String> inferences;
+    private final List<String> axioms;
 
     /**
      * Creates the evidences
@@ -61,7 +65,7 @@ public class Evidences {
      * @param inferences the inferences
      * @param axioms     the axioms
      */
-    protected Evidences(Map<String, Double> evidences, Set<String> hypothesis, Set<String> inferences, Set<String> axioms) {
+    protected Evidences(Map<String, Double> evidences, List<String> hypothesis, List<String> inferences, List<String> axioms) {
         this.evidences = requireNonNull(evidences);
         this.hypothesis = requireNonNull(hypothesis);
         this.inferences = requireNonNull(inferences);
@@ -74,10 +78,10 @@ public class Evidences {
      * @param evidences the evidences
      */
     protected Evidences(Evidences evidences) {
-        this(new HashMap<>(evidences.evidences),
-                new HashSet<>(evidences.hypothesis),
-                new HashSet<>(evidences.inferences),
-                new HashSet<>(evidences.axioms));
+        this.evidences = new HashMap<>(evidences.evidences);
+        this.hypothesis = new ArrayList<>(evidences.hypothesis);
+        this.inferences = new ArrayList<>(evidences.inferences);
+        this.axioms = new ArrayList<>(evidences.axioms);
     }
 
     /**
@@ -118,7 +122,7 @@ public class Evidences {
     /**
      * Returns the axioms
      */
-    public Set<String> getAxioms() {
+    public List<String> getAxioms() {
         return axioms;
     }
 
@@ -127,7 +131,7 @@ public class Evidences {
      *
      * @param axioms the axioms
      */
-    public Evidences setAxioms(Set<String> axioms) {
+    public Evidences setAxioms(List<String> axioms) {
         this.axioms.clear();
         this.axioms.addAll(axioms);
         return this;
@@ -145,7 +149,7 @@ public class Evidences {
     /**
      * Returns the hypothesis
      */
-    public Set<String> getHypothesis() {
+    public List<String> getHypothesis() {
         return hypothesis;
     }
 
@@ -164,15 +168,20 @@ public class Evidences {
      * Returns the list of hypothesis values order by certainty
      */
     public List<Tuple2<String, Double>> getHypothesisList() {
-        return hypothesis.stream().map(id -> Tuple2.of(id, get(id)))
-                .sorted(Comparator.comparingDouble(Tuple2::getV2))
+        Comparator<Tuple2<String, Double>> comparator = Comparator.<Tuple2<String, Double>>comparingDouble(t -> abs(t._2 - 0.5))
+                .reversed()
+                .thenComparing(Comparator.<Tuple2<String, Double>>comparingDouble(Tuple2::getV2).reversed())
+                .thenComparing(Tuple2::getV1);
+        return hypothesis.stream()
+                .map(id -> Tuple2.of(id, evidences.get(id)))
+                .sorted(comparator)
                 .collect(Collectors.toList());
     }
 
     /**
      * Returns the inferences
      */
-    public Set<String> getInferences() {
+    public List<String> getInferences() {
         return inferences;
     }
 
@@ -191,8 +200,13 @@ public class Evidences {
      * Returns the list of inferences values order by certainty
      */
     public List<Tuple2<String, Double>> getInferencesList() {
-        return inferences.stream().map(id -> Tuple2.of(id, get(id)))
-                .sorted(Comparator.comparingDouble(Tuple2::getV2))
+        Comparator<Tuple2<String, Double>> comparator = Comparator.<Tuple2<String, Double>>comparingDouble(t -> abs(t._2 - 0.5))
+                .reversed()
+                .thenComparing(Comparator.<Tuple2<String, Double>>comparingDouble(Tuple2::getV2).reversed())
+                .thenComparing(Tuple2::getV1);
+        return inferences.stream()
+                .map(id -> Tuple2.of(id, evidences.get(id)))
+                .sorted(comparator)
                 .collect(Collectors.toList());
     }
 

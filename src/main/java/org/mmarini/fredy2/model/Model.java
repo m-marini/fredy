@@ -36,14 +36,12 @@ import org.mmarini.yaml.schema.Validator;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Math.abs;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.Utils.zipWithIndex;
@@ -54,6 +52,7 @@ import static org.mmarini.yaml.schema.Validator.objectAdditionalProperties;
  */
 public class Model {
     public static final Validator JSON_SPEC = objectAdditionalProperties(InferenceNode.JSON_SPEC);
+    private static final double DX = 1e-6;
 
     /**
      * Returns the model from assertions
@@ -250,7 +249,7 @@ public class Model {
     /**
      * Returns the results of inference model
      */
-    public Evidences apply(Evidences facts) {
+    Evidences apply(Evidences facts) {
         Evidences result = facts.copy().clearAssertions();
         getHypothesisStream().forEach(assertion -> assertion.apply(this, result));
         return result;
@@ -261,7 +260,7 @@ public class Model {
      */
     public Evidences createUnknownAxioms() {
         Evidences result = Evidences.empty()
-                .setAxioms(axioms)
+                .setAxioms(axioms.stream().sorted().collect(Collectors.toList()))
                 .setHypothesis(hypothesis)
                 .setInferences(inferences);
         axioms.forEach(id -> result.put(id, Evidences.UNKNOWN_VALUE));
@@ -285,6 +284,15 @@ public class Model {
             }
         }
         return evidences.get(id);
+    }
+
+    /**
+     * Returns the assertion by identifier
+     *
+     * @param id the identifier
+     */
+    public Optional<Assertion> getAssertion(String id) {
+        return Optional.ofNullable(assertions.get(id));
     }
 
     /**
@@ -320,5 +328,59 @@ public class Model {
      */
     public Set<String> getInferences() {
         return inferences;
+    }
+
+    /**
+     * Returns the evidences sorted by gradient
+     *
+     * @param evidences the evidences
+     */
+    public Stream<String> getSortedAxioms(Evidences evidences) {
+        Gradient grad = gradient(evidences);
+        return axioms.stream()
+                .map(axiom -> {
+                    double maxAbsGrad = hypothesis.stream()
+                            .mapToDouble(hyp -> abs(grad.get(hyp, axiom)))
+                            .max()
+                            .orElse(0);
+                    return Tuple2.of(axiom, maxAbsGrad);
+                })
+                .sorted(Comparator.comparing(Tuple2::getV1))
+                .sorted(Comparator.comparingDouble(Tuple2<String, Double>::getV2).reversed())
+                .map(Tuple2::getV1);
+    }
+
+    /**
+     * Returns the gradient of model for the evidences
+     *
+     * @param evidences evidences
+     */
+    Gradient gradient(Evidences evidences) {
+        Gradient result = Gradient.empty();
+        for (String axiom : axioms) {
+            double x = evidences.get(axiom);
+            double dx = x >= 0.5 ? -DX : DX;
+            Evidences axioms1 = evidences.copy().clearAssertions();
+            axioms1.put(axiom, x + dx);
+            Evidences evidences1 = apply(axioms1);
+            for (String assertion : assertions.keySet()) {
+                double y1 = evidences1.get(assertion);
+                double y0 = evidences.get(assertion);
+                double grad = (y1 - y0) / dx;
+                result.put(assertion, axiom, grad);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns the sorted results of inference model
+     */
+    public Evidences infer(Evidences facts) {
+        Evidences result = facts.copy().clearAssertions();
+        getHypothesisStream().forEach(assertion -> assertion.apply(this, result));
+        Stream<String> sorted = getSortedAxioms(result);
+        result.setAxioms(sorted.collect(Collectors.toList()));
+        return result;
     }
 }

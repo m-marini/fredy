@@ -27,20 +27,52 @@
 
 package org.mmarini.fredy2.model;
 
-import org.junit.jupiter.params.provider.Arguments;
-import org.mmarini.ArgumentsGenerator;
+import org.mmarini.Tuple2;
 
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
 
-public interface TestUtils {
-
-    int SEED = 1234;
-    int TEST_NUMBER = 32;
-
-    static Stream<Arguments> singleValues() {
-        return ArgumentsGenerator.createStream(TEST_NUMBER, SEED,
-                ArgumentsGenerator.uniform(0.0, 1.0)
-        );
+/**
+ * Manages the gradient vector components
+ */
+public class Gradient {
+    /**
+     * Returns the empty gradient
+     */
+    public static Gradient empty() {
+        return new Gradient(new HashMap<>());
     }
 
+    private final Map<Tuple2<String, String>, Double> vector;
+
+    /**
+     * Creates the gradients
+     *
+     * @param vector the vector components
+     */
+    protected Gradient(Map<Tuple2<String, String>, Double> vector) {
+        this.vector = vector;
+    }
+
+    /**
+     * Returns the gradient component
+     *
+     * @param up   the upper identifier
+     * @param down the down identifier
+     */
+    public double get(String up, String down) {
+        return vector.getOrDefault(Tuple2.of(up, down), 0d);
+    }
+
+    /**
+     * Returns the gradient with set vector component
+     *
+     * @param up    the upper identifier
+     * @param down  the down identifier
+     * @param value the value
+     */
+    public Gradient put(String up, String down, double value) {
+        vector.put(Tuple2.of(up, down), value);
+        return this;
+    }
 }

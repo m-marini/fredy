@@ -82,7 +82,7 @@ zebra:
   type: and
   expressions:
     - type: predicate
-      id: striscie
+      id: strisce
     - type: predicate
       id: ungulato
 struzzo:
