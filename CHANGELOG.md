@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased] yyyy-mm-dd
 
+## [2.0.0] 2023-08-19
+
 ### ADDED
 
 - Issue #4: CD CI
