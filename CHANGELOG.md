@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased] yyyy-mm-dd
 
+## [2.1.0] 2023-09-01
+
 ### Changed
  
 - Issue #10: Align features with fredy-web
