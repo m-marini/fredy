@@ -38,15 +38,18 @@ public class AxiomTableCellRenderer extends DefaultTableCellRenderer {
             }
         }
         double truth = TRUTH_VALUES_BY_COLUMN[selectedCol];
-        Color c = FuzzyTableCellRenderer.getColor(truth);
+        Color bg = FuzzyTableCellRenderer.getBackgroundColor(truth);
+        Color fg = FuzzyTableCellRenderer.getForegroundColor(truth);
         if (value instanceof Boolean) {
             checkBox.setSelected((Boolean) value);
-            checkBox.setBackground(c);
+            checkBox.setBackground(bg);
+            checkBox.setForeground(fg);
             return checkBox;
         } else {
             Component r = super.getTableCellRendererComponent(table, value,
                     isSelected, hasCellFocus, row, column);
-            r.setBackground(c);
+            r.setBackground(bg);
+            r.setForeground(fg);
             return r;
         }
     }
