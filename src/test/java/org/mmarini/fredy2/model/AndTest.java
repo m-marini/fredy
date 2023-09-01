@@ -34,8 +34,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -43,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mmarini.TestFunctions.text;
 import static org.mmarini.yaml.Utils.fromText;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class AndTest implements TestUtils {
 
@@ -52,12 +52,12 @@ class AndTest implements TestUtils {
         // Given ...
         And p = And.create(
                 new Predicate("a"),
-                new Predicate("b")
+                new Predicate("b"),
+                new Predicate("a")
         );
-        Set<String> deps = new HashSet<>();
 
         // When ...
-        p.createDependencies(deps);
+        List<String> deps = p.getDependencies().collect(Collectors.toList());
 
         // Then ...
         assertThat(deps, containsInAnyOrder("a", "b"));
@@ -99,11 +99,7 @@ class AndTest implements TestUtils {
 
         Model model = mock(Model.class);
 
-        Evidences evidences = mock(Evidences.class);
-        when(evidences.contains("a")).thenReturn(true);
-        when(evidences.contains("b")).thenReturn(true);
-        when(evidences.get("a")).thenReturn(a);
-        when(evidences.get("b")).thenReturn(b);
+        Map<String, Double> evidences = Map.of("a", a, "b", b);
 
         // When ...
         double value = p.evaluate(model, evidences);

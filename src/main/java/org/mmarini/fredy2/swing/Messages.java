@@ -27,12 +27,27 @@
 
 package org.mmarini.fredy2.swing;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 public class Messages {
     private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle
             .getBundle(Messages.class.getPackageName() + ".messages");
+    private static final Logger logger = LoggerFactory.getLogger(Messages.class);
+
+    public static int getInt(String key, int defaultValue) {
+        try {
+            return Integer.parseInt(RESOURCE_BUNDLE.getString(key));
+        } catch (MissingResourceException e) {
+            return defaultValue;
+        } catch (NumberFormatException e) {
+            logger.atError().setCause(e).log();
+            return defaultValue;
+        }
+    }
 
     public static String getString(String key) {
         try {

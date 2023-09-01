@@ -35,16 +35,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
 
 /**
- * Gets the negation of expression
+ * Gets the isAntinomy of expression
  */
-public class Not implements InferenceNode {
+public class IsAntinomy implements InferenceNode {
     public static final Validator JSON_SPEC = objectPropertiesRequired(Map.of(
-                    "expression", InferenceNode.JSON_SPEC),
-            List.of("expression")
+                    "assertion", InferenceNode.JSON_SPEC,
+                    "negation", InferenceNode.JSON_SPEC),
+            List.of("assertion", "negation")
     );
 
     /**
@@ -53,34 +55,44 @@ public class Not implements InferenceNode {
      * @param root    the document root
      * @param locator the locator
      */
-    public static Not fromJson(JsonNode root, Locator locator) {
+    public static IsAntinomy fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
-        return new Not(InferenceNode.fromJson(root, locator.path("expression")));
+        InferenceNode exp1 = InferenceNode.fromJson(root, locator.path("assertion"));
+        InferenceNode exp2 = InferenceNode.fromJson(root, locator.path("negation"));
+        return new IsAntinomy(exp1, exp2);
     }
 
-    private final InferenceNode expression;
+    private final InferenceNode assertion;
+    private final InferenceNode negation;
 
     /**
-     * Creates the not node
+     * Creates the iff node
      *
-     * @param expression the expression
+     * @param assertion the assertion expression
+     * @param negation  the negation expression
      */
-    public Not(InferenceNode expression) {
-        this.expression = requireNonNull(expression);
+    public IsAntinomy(InferenceNode assertion, InferenceNode negation) {
+        this.assertion = requireNonNull(assertion);
+        this.negation = requireNonNull(negation);
     }
 
     @Override
     public double evaluate(Model model, Map<String, Double> evidences) {
-        return 1 - expression.evaluate(model, evidences);
+        double a = assertion.evaluate(model, evidences);
+        double b = negation.evaluate(model, evidences);
+        return max(0, a + b - 1);
     }
 
     @Override
     public Stream<String> getDependencies() {
-        return expression.getDependencies();
+        return Stream.concat(
+                assertion.getDependencies(),
+                negation.getDependencies()
+        ).distinct();
     }
 
     @Override
     public String toString() {
-        return "not(" + expression + ")";
+        return "isAntinomy(" + assertion + ", " + negation + ")";
     }
 }

@@ -33,7 +33,7 @@ import org.mmarini.yaml.schema.Validator;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
@@ -71,17 +71,16 @@ public class Predicate implements InferenceNode {
     }
 
     @Override
-    public void createDependencies(Set<String> dependencies) {
-        dependencies.add(id);
+    public double evaluate(Model model, Map<String, Double> evidences) {
+        Double value = evidences.get(id);
+        return value != null
+                ? value
+                : model.evaluate(id, evidences);
     }
 
     @Override
-    public double evaluate(Model model, Evidences evidences) {
-        if (evidences.contains(id)) {
-            return evidences.get(id);
-        } else {
-            return model.evaluate(id, evidences);
-        }
+    public Stream<String> getDependencies() {
+        return Stream.of(id);
     }
 
     @Override

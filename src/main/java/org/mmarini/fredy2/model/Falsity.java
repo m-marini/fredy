@@ -33,16 +33,16 @@ import org.mmarini.yaml.schema.Validator;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
-import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
 
 /**
- * Gets the paradox of expression
+ * Gets the truth of expressions
  */
-public class IsParadox implements InferenceNode {
+public class Falsity implements InferenceNode {
     public static final Validator JSON_SPEC = objectPropertiesRequired(Map.of(
                     "assertion", InferenceNode.JSON_SPEC,
                     "negation", InferenceNode.JSON_SPEC),
@@ -55,42 +55,44 @@ public class IsParadox implements InferenceNode {
      * @param root    the document root
      * @param locator the locator
      */
-    public static IsParadox fromJson(JsonNode root, Locator locator) {
+    public static Falsity fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
         InferenceNode exp1 = InferenceNode.fromJson(root, locator.path("assertion"));
         InferenceNode exp2 = InferenceNode.fromJson(root, locator.path("negation"));
-        return new IsParadox(exp1, exp2);
+        return new Falsity(exp1, exp2);
     }
 
     private final InferenceNode assertion;
     private final InferenceNode negation;
 
     /**
-     * Creates the iff node
+     * Creates the truth node
      *
      * @param assertion the assertion expression
      * @param negation  the negation expression
      */
-    public IsParadox(InferenceNode assertion, InferenceNode negation) {
+    public Falsity(InferenceNode assertion, InferenceNode negation) {
         this.assertion = requireNonNull(assertion);
         this.negation = requireNonNull(negation);
     }
 
     @Override
-    public void createDependencies(Set<String> dependencies) {
-        assertion.createDependencies(dependencies);
-        negation.createDependencies(dependencies);
+    public double evaluate(Model model, Map<String, Double> evidences) {
+        double a = assertion.evaluate(model, evidences);
+        double b = negation.evaluate(model, evidences);
+        return min(1 - a, b);
     }
 
     @Override
-    public double evaluate(Model model, Evidences evidences) {
-        double a = assertion.evaluate(model, evidences);
-        double b = negation.evaluate(model, evidences);
-        return max(0, a + b - 1);
+    public Stream<String> getDependencies() {
+        return Stream.concat(
+                assertion.getDependencies(),
+                negation.getDependencies()
+        ).distinct();
     }
 
     @Override
     public String toString() {
-        return "isParadox(" + assertion + ", " + negation + ")";
+        return "falsity(" + assertion + ", " + negation + ")";
     }
 }

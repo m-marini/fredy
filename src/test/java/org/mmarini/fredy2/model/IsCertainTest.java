@@ -34,8 +34,9 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -43,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mmarini.TestFunctions.text;
 import static org.mmarini.yaml.Utils.fromText;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class IsCertainTest implements TestUtils {
 
@@ -51,59 +51,32 @@ class IsCertainTest implements TestUtils {
     void createDependencies() {
         // Given ...
         IsCertain p = new IsCertain(
-                new Predicate("a"),
-                new Predicate("b")
+                new Predicate("a")
         );
-        Set<String> deps = new HashSet<>();
 
         // When ...
-        p.createDependencies(deps);
+        List<String> deps = p.getDependencies().collect(Collectors.toList());
 
         // Then ...
-        assertThat(deps, containsInAnyOrder("a", "b"));
+        assertThat(deps, containsInAnyOrder("a"));
     }
 
     @ParameterizedTest
     @CsvSource({
-            "   0,    0,    0",
-            "   0, 0.25, 0.25",
-            "   0,  0.5,  0.5",
-            "   0, 0.75, 0.75",
-            "   0,    1,    1",
-            "0.25,    0, 0.25",
-            "0.25, 0.25,  0.5",
-            "0.25,  0.5, 0.75",
-            "0.25, 0.75,    1",
-            "0.25,    1, 0.75",
-            " 0.5,    0,  0.5",
-            " 0.5, 0.25, 0.75",
-            " 0.5,  0.5,    1",
-            " 0.5, 0.75, 0.75",
-            " 0.5,    1,  0.5",
-            "0.75,    0, 0.75",
-            "0.75, 0.25,    1",
-            "0.75,  0.5, 0.75",
-            "0.75, 0.75,  0.5",
-            "0.75,    1, 0.25",
-            "   1,    0,    1",
-            "   1, 0.25, 0.75",
-            "   1,  0.5,  0.5",
-            "   1, 0.75, 0.25",
-            "   1,    1,    0",
+            "0   , 1",
+            "0.25, 0.5",
+            "0.5 , 0",
+            "0.75, 0.5",
+            "1   , 1"
     })
-    void evaluate(double a, double b, double expected) {
+    void evaluate(double a, double expected) {
         // Given ...
         IsCertain p = new IsCertain(
-                new Predicate("a"),
-                new Predicate("b"));
+                new Predicate("a"));
 
         Model model = mock(Model.class);
 
-        Evidences evidences = mock(Evidences.class);
-        when(evidences.contains("a")).thenReturn(true);
-        when(evidences.contains("b")).thenReturn(true);
-        when(evidences.get("a")).thenReturn(a);
-        when(evidences.get("b")).thenReturn(b);
+        Map<String, Double> evidences = Map.of("a", a);
 
         // When ...
         double value = p.evaluate(model, evidences);
@@ -117,12 +90,9 @@ class IsCertainTest implements TestUtils {
         // Given ...
         JsonNode node = fromText(text(
                 "---",
-                "assertion:",
+                "expression:",
                 "  type: predicate",
-                "  id: a",
-                "negation:",
-                "  type: predicate",
-                "  id: b"
+                "  id: a"
         ));
 
         // When ...
@@ -130,7 +100,7 @@ class IsCertainTest implements TestUtils {
 
         // Then ...
         assertThat(p, hasToString(
-                matchesPattern("isCertain\\('a', 'b'\\)")
+                matchesPattern("isCertain\\('a'\\)")
         ));
     }
 }

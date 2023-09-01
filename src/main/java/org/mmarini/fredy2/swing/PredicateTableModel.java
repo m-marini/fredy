@@ -3,14 +3,13 @@
  */
 package org.mmarini.fredy2.swing;
 
-import org.mmarini.Tuple2;
+import org.mmarini.fredy2.model.PredicateStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.table.AbstractTableModel;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.util.Properties;
 
 import static org.mmarini.fredy2.swing.MessagesUtils.format;
 
@@ -23,6 +22,7 @@ public class PredicateTableModel extends AbstractTableModel {
     private boolean editable;
     private String[] ids;
     private double[] values;
+    private Properties mapper;
 
     /**
      * Creates the table model
@@ -31,6 +31,7 @@ public class PredicateTableModel extends AbstractTableModel {
         logger.atDebug().log("Created");
         colName = new String[]{
                 format("PredicateTableModel.predicate"), format("PredicateTableModel.value")};
+        mapper = new Properties();
     }
 
     @Override
@@ -51,28 +52,6 @@ public class PredicateTableModel extends AbstractTableModel {
         return colName[i];
     }
 
-    /**
-     * Returns the predicates
-     */
-    public List<Tuple2<String, Double>> getPredicates() {
-        return ids != null
-                ? IntStream.range(0, ids.length)
-                .mapToObj(i -> Tuple2.of(ids[i], values[i]))
-                .collect(Collectors.toList())
-                : List.of();
-    }
-
-    /**
-     * Sets the predicates
-     *
-     * @param predicates the predicates
-     */
-    public void setPredicates(List<Tuple2<String, Double>> predicates) {
-        ids = predicates.stream().map(Tuple2::getV1).toArray(String[]::new);
-        values = predicates.stream().mapToDouble(Tuple2::getV2).toArray();
-        fireTableDataChanged();
-    }
-
     @Override
     public int getRowCount() {
         return ids != null ? ids.length : 0;
@@ -82,7 +61,7 @@ public class PredicateTableModel extends AbstractTableModel {
     public Object getValueAt(int rowIndex, int columnIndex) {
         switch (columnIndex) {
             case 0:
-                return format("Predicates." + ids[rowIndex]);
+                return "<html>" + mapper.getOrDefault(ids[rowIndex], ids[rowIndex]) + "</html>";
             case 1:
                 return values[rowIndex];
             default:
@@ -110,6 +89,27 @@ public class PredicateTableModel extends AbstractTableModel {
     public void setEditable(boolean editable) {
         this.editable = editable;
         fireTableStructureChanged();
+    }
+
+    /**
+     * Set the language mapper
+     *
+     * @param mapper the mapper
+     */
+    public void setMapper(Properties mapper) {
+        this.mapper = mapper;
+        fireTableDataChanged();
+    }
+
+    /**
+     * Sets the predicates
+     *
+     * @param predicates the predicates
+     */
+    public void setPredicates(List<? extends PredicateStatus> predicates) {
+        ids = predicates.stream().map(PredicateStatus::getId).toArray(String[]::new);
+        values = predicates.stream().mapToDouble(PredicateStatus::getTruth).toArray();
+        fireTableDataChanged();
     }
 
     @Override

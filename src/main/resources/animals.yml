@@ -1,118 +1,190 @@
 ---
-mammifero:
-  type: or
-  expressions:
-    - type: predicate
-      id: peli
-    - type: predicate
-      id: latte
-uccello:
-  type: or
-  expressions:
-    - type: predicate
-      id: piume
-    - type: and
-      expressions:
-        - type: predicate
-          id: vola
-        - type: predicate
-          id: uova
-carnivoro:
-  type: or
-  expressions:
-    - type: predicate
-      id: carne
-    - type: and
-      expressions:
-        - type: predicate
-          id: denti
-        - type: predicate
-          id: occhi
-        - type: predicate
-          id: artigli
-ungulato:
-  type: or
-  expressions:
-    - type: and
-      expressions:
-        - type: predicate
-          id: mammifero
-        - type: predicate
-          id: zoccoli
-    - type: and
-      expressions:
-        - type: predicate
-          id: mammifero
-        - type: predicate
-          id: ruminante
-ghepardo:
-  type: and
-  expressions:
-    - type: predicate
-      id: mammifero
-    - type: predicate
-      id: carnivoro
-    - type: predicate
-      id: fulvo
-    - type: predicate
-      id: macchie
-tigre:
-  type: and
-  expressions:
-    - type: predicate
-      id: mammifero
-    - type: predicate
-      id: carnivoro
-    - type: predicate
-      id: fulvo
-    - type: predicate
-      id: strisce
-giraffa:
-  type: and
-  expressions:
-    - type: predicate
-      id: macchie
-    - type: predicate
-      id: zampe
-    - type: predicate
-      id: ungulato
-    - type: predicate
-      id: collo
-zebra:
-  type: and
-  expressions:
-    - type: predicate
-      id: strisce
-    - type: predicate
-      id: ungulato
-struzzo:
-  type: and
-  expressions:
-    - type: predicate
-      id: collo
-    - type: predicate
-      id: uccello
-    - type: predicate
-      id: bianconero
-    - type: not
-      expression:
-        type: predicate
-        id: vola
-pinguino:
-  type: and
-  expressions:
-    - type: not
-      expression:
-        type: predicate
-        id: vola
-    - type: predicate
-      id: uccello
-    - type: predicate
-      id: nuota
-albatro:
-  type: and
-  expressions:
-    - type: predicate
-      id: vola
-    - type: predicate
-      id: uccello
+version: "0.1"
+id: animals
+model:
+  is-mamal:
+    type: or
+    expressions:
+      - type: predicate
+        id: has-fur
+      - type: predicate
+        id: suckles
+  is-bird:
+    type: and
+    expressions:
+      - type: not
+        expression:
+          type: predicate
+          id: is-mamal
+      - type: or
+        expressions:
+          - type: predicate
+            id: has-feathers
+          - type: and
+            expressions:
+              - type: predicate
+                id: flies
+              - type: predicate
+                id: lays-eggs
+  is-carnivore:
+    type: or
+    expressions:
+      - type: predicate
+        id: eats-meat
+      - type: and
+        expressions:
+          - type: predicate
+            id: has-sharp-teeth
+          - type: predicate
+            id: has-frontal-eyes
+          - type: predicate
+            id: has-claws
+  is-ungulate:
+    type: or
+    expressions:
+      - type: and
+        expressions:
+          - type: predicate
+            id: is-mamal
+          - type: predicate
+            id: has-hooves
+      - type: and
+        expressions:
+          - type: predicate
+            id: is-mamal
+          - type: predicate
+            id: is-ruminant
+  is-cheetah:
+    type: and
+    expressions:
+      - type: predicate
+        id: is-mamal
+      - type: predicate
+        id: is-carnivore
+      - type: predicate
+        id: has-fawn-color
+      - type: predicate
+        id: is-spotted
+  is-tiger:
+    type: and
+    expressions:
+      - type: predicate
+        id: is-mamal
+      - type: predicate
+        id: is-carnivore
+      - type: predicate
+        id: has-fawn-color
+      - type: predicate
+        id: is-striped
+  is-giraffe:
+    type: and
+    expressions:
+      - type: predicate
+        id: is-spotted
+      - type: predicate
+        id: has-long-legs
+      - type: predicate
+        id: is-ungulate
+      - type: predicate
+        id: has-long-neck
+  is-zebra:
+    type: and
+    expressions:
+      - type: predicate
+        id: is-striped
+      - type: predicate
+        id: is-ungulate
+  is-ostrich:
+    type: and
+    expressions:
+      - type: predicate
+        id: has-long-neck
+      - type: predicate
+        id: is-bird
+      - type: predicate
+        id: is-black-and-white
+      - type: not
+        expression:
+          type: predicate
+          id: flies
+  is-pinguin:
+    type: and
+    expressions:
+      - type: not
+        expression:
+          type: predicate
+          id: flies
+      - type: predicate
+        id: is-bird
+      - type: predicate
+        id: swims
+  is-albatross:
+    type: and
+    expressions:
+      - type: predicate
+        id: flies
+      - type: predicate
+        id: is-bird
+languages:
+  default:
+    animals: "Guess the animals"
+    is-albatross: "The animal is an albatross"
+    is-bird: "The animal is a bird"
+    is-black-and-white: "The animal is black and white"
+    is-carnivore: "The animal is carnivore"
+    is-cheetah: "The animal is a cheetah"
+    is-giraffe: "The animal is a giraffe"
+    is-mamal: "The animal is a mamal"
+    is-pinguin: "The animal is a pinguin"
+    is-tiger: "The animal is a tiger"
+    is-ostrich: "The animal is an ostrich"
+    is-spotted: "The animal is spotted"
+    is-striped: "The animal is striped"
+    is-ungulate: "The animal is ungulate"
+    is-ruminant: "The animal is ruminant"
+    is-zebra: "The animal is a zebra"
+    has-claws: "The animal has claws"
+    has-feathers: "The animal has feathers"
+    has-fawn-color: "The animal has fawn color"
+    has-frontal-eyes: "The animal has frontal eyes"
+    has-fur: "The animal has fur"
+    has-hooves: "The animal has hooves"
+    has-long-legs: "The animal has long legs"
+    has-long-neck: "The animal has long neck"
+    has-sharp-teeth: "The animal has sharp teeth"
+    eats-meat: "The animal eats meat"
+    flies: "The animal flies"
+    lays-eggs: "The animal lays egges"
+    suckles: "The animal suckles"
+    swims: "The animal swims"
+  it:
+    animals: "Indovina l'animale"
+    is-albatross: "L'animale è un albatro"
+    is-bird: "L'animale è un uccello"
+    is-black-and-white: "L'animale è bianco e nero"
+    is-carnivore: "L'animale è carnivoro"
+    is-cheetah: "L'animale è un ghepardo"
+    is-giraffe: "L'animale è una giraffa"
+    is-mamal: "L'animale è un mammifero"
+    is-pinguin: "L'animale è un pinguino"
+    is-tiger: "L'animale è una tigre"
+    is-ostrich: "L'animale è uno struzzo"
+    is-spotted: "L'animale è maculato"
+    is-striped: "L'animale ha le strisce"
+    is-ungulate: "L'animale è ungulato"
+    is-ruminant: "L'animale è ruminante"
+    is-zebra: "L'animale è una zebra"
+    has-claws: "L'animale ha gli artigli"
+    has-feathers: "L'animale ha le piume"
+    has-fawn-color: "L'animale ha il colore fulvo"
+    has-frontal-eyes: "L'animale ha gli occhi frontali"
+    has-fur: "L'animale ha la pelliccia"
+    has-hooves: "L'animale ha gli zoccoli"
+    has-long-legs: "L'animale ha le zampe lunghe"
+    has-long-neck: "L'animale ha il collo lungo"
+    has-sharp-teeth: "L'animale hai denti aguzzi"
+    eats-meat: "L'animale mangia carne"
+    flies: "L'animale vola"
+    lays-eggs: "L'animale depone uova"
+    suckles: "L'animale allatta"
+    swims: "L'animale nuota"

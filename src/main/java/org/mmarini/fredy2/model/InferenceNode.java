@@ -28,14 +28,15 @@
 package org.mmarini.fredy2.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.mmarini.NotImplementedException;
 import org.mmarini.yaml.schema.Locator;
 import org.mmarini.yaml.schema.Validator;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.mmarini.yaml.schema.Validator.*;
 
@@ -68,19 +69,21 @@ public interface InferenceNode {
     }
 
     /**
-     * Traverses the tree for the dependencies
-     *
-     * @param dependencies the dependencies
-     */
-    void createDependencies(Set<String> dependencies);
-
-    /**
      * Returns the value of the inference node
      *
      * @param model     the model
      * @param evidences the evidences
      */
-    double evaluate(Model model, Evidences evidences);
+    default double evaluate(Model model, Map<String, Double> evidences) {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * Returns the stream of dependencies
+     */
+    default Stream<String> getDependencies() {
+        throw new NotImplementedException();
+    }
 
     /**
      * The builders
@@ -90,11 +93,16 @@ public interface InferenceNode {
             Map.entry("not", Not::fromJson),
             Map.entry("and", And::fromJson),
             Map.entry("or", Or::fromJson),
+            Map.entry("xor", Xor::fromJson),
             Map.entry("implies", Implies::fromJson),
             Map.entry("iff", Iff::fromJson),
-            Map.entry("isParadox", IsParadox::fromJson),
-            Map.entry("isTrue", IsTrue::fromJson),
+            Map.entry("isAntinomy", IsAntinomy::fromJson),
+            Map.entry("truth", Truth::fromJson),
+            Map.entry("falsity", Falsity::fromJson),
+            Map.entry("certainty", Certainty::fromJson),
             Map.entry("isCertain", IsCertain::fromJson),
+            Map.entry("isCertainTrue", IsCertainTrue::fromJson),
+            Map.entry("isCertainFalse", IsCertainFalse::fromJson),
             Map.entry("very", Very::fromJson),
             Map.entry("somewhat", Somewhat::fromJson)
     );

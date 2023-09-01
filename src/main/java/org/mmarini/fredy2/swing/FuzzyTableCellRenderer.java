@@ -3,8 +3,6 @@
  */
 package org.mmarini.fredy2.swing;
 
-import org.mmarini.fredy2.model.Evidences;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
@@ -20,12 +18,7 @@ public class FuzzyTableCellRenderer extends DefaultTableCellRenderer {
     public static final String UNKNOWN_ID = "unknown";
     public static final String QUITE_TRUE_ID = "quite.true";
     public static final String TRUE_ID = "true";
-    public static final double FALSE_VALUE = 0;
-    public static final double QUITE_FALSE_VALUE = 0.25;
-    public static final double UNKNOWN_VALUE = Evidences.UNKNOWN_VALUE;
-    public static final double QUITE_TRUE_VALUE = 0.75;
-    public static final double TRUE_VALUE = 1;
-
+    public static final FuzzyTableCellRenderer FUZZY_TABLE_CELL_RENDERER = new FuzzyTableCellRenderer();
     private static final Color[] COLORS = new Color[]{
             new Color(0xFFCCCC),
             new Color(0xFFEEEE),
@@ -95,6 +88,7 @@ public class FuzzyTableCellRenderer extends DefaultTableCellRenderer {
         Color c = getColor((Double) table.getValueAt(row, 1));
         Component r = super.getTableCellRendererComponent(table, value,
                 isSelected, hasCellFocus, row, column);
+        r.setBackground(c);
         r.setBackground(c);
         return r;
     }

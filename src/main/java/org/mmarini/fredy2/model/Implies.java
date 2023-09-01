@@ -33,7 +33,7 @@ import org.mmarini.yaml.schema.Validator;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
@@ -43,9 +43,9 @@ import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
  */
 public class Implies implements InferenceNode {
     public static final Validator JSON_SPEC = objectPropertiesRequired(Map.of(
-                    "expression1", InferenceNode.JSON_SPEC,
-                    "expression2", InferenceNode.JSON_SPEC),
-            List.of("expression1", "expression2")
+                    "antecedent", InferenceNode.JSON_SPEC,
+                    "consequent", InferenceNode.JSON_SPEC),
+            List.of("antecedent", "consequent")
     );
 
     /**
@@ -56,40 +56,42 @@ public class Implies implements InferenceNode {
      */
     public static Implies fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
-        InferenceNode exp1 = InferenceNode.fromJson(root, locator.path("expression1"));
-        InferenceNode exp2 = InferenceNode.fromJson(root, locator.path("expression2"));
+        InferenceNode exp1 = InferenceNode.fromJson(root, locator.path("antecedent"));
+        InferenceNode exp2 = InferenceNode.fromJson(root, locator.path("consequent"));
         return new Implies(exp1, exp2);
     }
 
-    private final InferenceNode expression1;
-    private final InferenceNode expression2;
+    private final InferenceNode antecedent;
+    private final InferenceNode consequent;
 
     /**
      * Creates the implies node
      *
-     * @param expression1 the first expression
-     * @param expression2 the second expression
+     * @param antecedent the first expression
+     * @param consequent the second expression
      */
-    public Implies(InferenceNode expression1, InferenceNode expression2) {
-        this.expression1 = requireNonNull(expression1);
-        this.expression2 = requireNonNull(expression2);
+    public Implies(InferenceNode antecedent, InferenceNode consequent) {
+        this.antecedent = requireNonNull(antecedent);
+        this.consequent = requireNonNull(consequent);
     }
 
     @Override
-    public void createDependencies(Set<String> dependencies) {
-        expression1.createDependencies(dependencies);
-        expression2.createDependencies(dependencies);
+    public double evaluate(Model model, Map<String, Double> evidences) {
+        double a = antecedent.evaluate(model, evidences);
+        double b = consequent.evaluate(model, evidences);
+        return Math.max(1 - a, b);
     }
 
     @Override
-    public double evaluate(Model model, Evidences evidences) {
-        double a = expression1.evaluate(model, evidences);
-        double b = expression2.evaluate(model, evidences);
-        return Math.min(1 - a + b, 1.);
+    public Stream<String> getDependencies() {
+        return Stream.concat(
+                antecedent.getDependencies(),
+                consequent.getDependencies()
+        ).distinct();
     }
 
     @Override
     public String toString() {
-        return "implies(" + expression1 + ", " + expression2 + ")";
+        return "implies(" + antecedent + ", " + consequent + ")";
     }
 }

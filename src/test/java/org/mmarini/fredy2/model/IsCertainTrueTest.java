@@ -30,7 +30,7 @@ package org.mmarini.fredy2.model;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
@@ -45,25 +45,19 @@ import static org.mmarini.TestFunctions.text;
 import static org.mmarini.yaml.Utils.fromText;
 import static org.mockito.Mockito.mock;
 
-class NotTest implements TestUtils {
-
-    @Test
-    void createDependencies() {
-        // Given ...
-        Not p = new Not(new Predicate("a"));
-
-        // When ...
-        Collection<String> deps = p.getDependencies().collect(Collectors.toList());
-
-        // Then ...
-        assertThat(deps, containsInAnyOrder("a"));
-    }
+class IsCertainTrueTest implements TestUtils {
 
     @ParameterizedTest
-    @MethodSource("singleValues")
-    void evaluate(double a) {
+    @CsvSource({
+            "0,    0",
+            "0.25, 0",
+            "0.5 , 0",
+            "0.75, 0.5",
+            "1   , 1"
+    })
+    void evaluate(double a, double expected) {
         // Given ...
-        Not p = new Not(new Predicate("a"));
+        IsCertainTrue p = new IsCertainTrue(new Predicate("a"));
 
         Model model = mock(Model.class);
 
@@ -73,7 +67,7 @@ class NotTest implements TestUtils {
         double value = p.evaluate(model, evidences);
 
         // Then ...
-        assertEquals(1 - a, value);
+        assertEquals(expected, value);
     }
 
     @Test
@@ -87,11 +81,23 @@ class NotTest implements TestUtils {
         ));
 
         // When ...
-        Not p = Not.fromJson(node, Locator.root());
+        IsCertainTrue p = IsCertainTrue.fromJson(node, Locator.root());
 
         // Then ...
         assertThat(p, hasToString(
-                matchesPattern("not\\('a'\\)")
+                matchesPattern("isCertainTrue\\('a'\\)")
         ));
+    }
+
+    @Test
+    void getDependencies() {
+        // Given ...
+        IsCertainTrue p = new IsCertainTrue(new Predicate("a"));
+
+        // When ...
+        Collection<String> deps = p.getDependencies().collect(Collectors.toList());
+
+        // Then ...
+        assertThat(deps, containsInAnyOrder("a"));
     }
 }

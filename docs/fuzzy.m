@@ -9,6 +9,10 @@ function z = or(x,y)
   z = max(x,y);
 endfunction
 
+function z = xor(x,y)
+  z = or(and(not(x), y), and(x, not(y)));
+endfunction
+
 function z = not(x)
   z = 1-x;
 endfunction
@@ -21,27 +25,31 @@ function z = somewhat(x)
   z = sqrt(x);
 endfunction
 
-function z = isTrue(x,y)
+function z = truth(x,y)
   z = min(x, 1 - y);
 endfunction
 
-function z = isParadox(x,y)
+function z = falsity(x,y)
+  z = isTrue(y,x);
+endfunction
+
+function z = isAntinomy(x,y)
   z = max(0, x + y - 1);
 endfunction
 
-function z = isCertain(x,y)
-  z = max(0, 1 - abs(1 - x - y));
+function z = certainty(x,y)
+  z = xor(x,y);
 endfunction
 
 function z = implies(x,y)
-  z = min(1 - x + y, 1);
+  z = or(not(x),y);
 endfunction
 
 function z = iff(x,y)
-  z = 1 - abs(x - y);
+  z = or(and(x, y), and(not(x), not(y)));
 endfunction
 
-z = isTrue(x, not(y));
+z = truth(x, y);
 
 mesh (tx, ty, z);
 xlabel ("x");
