@@ -33,20 +33,19 @@ import org.mmarini.yaml.schema.Validator;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
-import static java.lang.Math.min;
+import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
 
 /**
- * Gets the paradox of expression
+ * Gets the negation of expression
  */
-public class IsTrue implements InferenceNode {
+public class IsCertainTrue implements InferenceNode {
     public static final Validator JSON_SPEC = objectPropertiesRequired(Map.of(
-                    "assertion", InferenceNode.JSON_SPEC,
-                    "negation", InferenceNode.JSON_SPEC),
-            List.of("assertion", "negation")
+                    "expression", InferenceNode.JSON_SPEC),
+            List.of("expression")
     );
 
     /**
@@ -55,42 +54,35 @@ public class IsTrue implements InferenceNode {
      * @param root    the document root
      * @param locator the locator
      */
-    public static IsTrue fromJson(JsonNode root, Locator locator) {
+    public static IsCertainTrue fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
-        InferenceNode exp1 = InferenceNode.fromJson(root, locator.path("assertion"));
-        InferenceNode exp2 = InferenceNode.fromJson(root, locator.path("negation"));
-        return new IsTrue(exp1, exp2);
+        return new IsCertainTrue(InferenceNode.fromJson(root, locator.path("expression")));
     }
 
-    private final InferenceNode assertion;
-    private final InferenceNode negation;
+    private final InferenceNode expression;
 
     /**
-     * Creates the iff node
+     * Creates the not node
      *
-     * @param assertion the assertion expression
-     * @param negation  the negation expression
+     * @param expression the expression
      */
-    public IsTrue(InferenceNode assertion, InferenceNode negation) {
-        this.assertion = requireNonNull(assertion);
-        this.negation = requireNonNull(negation);
+    public IsCertainTrue(InferenceNode expression) {
+        this.expression = requireNonNull(expression);
     }
 
     @Override
-    public void createDependencies(Set<String> dependencies) {
-        assertion.createDependencies(dependencies);
-        negation.createDependencies(dependencies);
+    public double evaluate(Model model, Map<String, Double> evidences) {
+        double y = expression.evaluate(model, evidences);
+        return max(0, 2 * y - 1);
     }
 
     @Override
-    public double evaluate(Model model, Evidences evidences) {
-        double a = assertion.evaluate(model, evidences);
-        double b = negation.evaluate(model, evidences);
-        return min(a, 1 - b);
+    public Stream<String> getDependencies() {
+        return expression.getDependencies();
     }
 
     @Override
     public String toString() {
-        return "isTrue(" + assertion + ", " + negation + ")";
+        return "isCertainTrue(" + expression + ")";
     }
 }

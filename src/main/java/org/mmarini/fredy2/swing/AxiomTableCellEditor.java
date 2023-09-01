@@ -25,26 +25,39 @@
  *    END OF TERMS AND CONDITIONS
  */
 
-package org.mmarini.fredy2.model;
+package org.mmarini.fredy2.swing;
 
-import org.junit.jupiter.api.Test;
+import javax.swing.*;
+import java.awt.*;
 
-import java.util.Set;
+import static org.mmarini.fredy2.swing.AxiomTableModel.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+/**
+ * The axiom cell editor
+ */
+public class AxiomTableCellEditor extends DefaultCellEditor {
 
-class AssertionTest {
+    /**
+     * Creates the fuzzy cell editor
+     */
+    public AxiomTableCellEditor() {
+        super(new JCheckBox());
+    }
 
-    @Test
-    void createDependencies() {
-        // Given ...
-        Assertion p = new Assertion("a", new Predicate("b"));
-
-        // When ...
-        Set<String> deps = p.createDependencies();
-
-        // Then ...
-        assertThat(deps, containsInAnyOrder("b"));
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        int selectedCol = UNKNOWN_COLUMN;
+        for (int i = TRUE_COLUMN; i <= FALSE_COLUMN; i++) {
+            if ((Boolean) table.getValueAt(row, i)) {
+                selectedCol = i;
+                break;
+            }
+        }
+        Color c = FuzzyTableCellRenderer.getColor(AxiomTableModel.TRUTH_VALUES_BY_COLUMN[selectedCol]);
+        Component r = super.getTableCellEditorComponent(table, value,
+                isSelected, row, column);
+        r.setBackground(c);
+        r.setForeground(c);
+        return r;
     }
 }

@@ -33,19 +33,32 @@ import org.mmarini.yaml.schema.Validator;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.util.Objects.requireNonNull;
+import static org.mmarini.yaml.schema.Validator.arrayItems;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
 
 /**
- * Gets the negation of expression
+ * Gets the xor value of expressions
  */
-public class Not implements InferenceNode {
+public class Xor implements InferenceNode {
     public static final Validator JSON_SPEC = objectPropertiesRequired(Map.of(
-                    "expression", InferenceNode.JSON_SPEC),
-            List.of("expression")
+                    "expressions", arrayItems(InferenceNode.JSON_SPEC)),
+            List.of("expressions")
     );
+
+    /**
+     * Returns the and node
+     *
+     * @param nodes the node list
+     */
+    public static Xor create(InferenceNode... nodes) {
+        return new Xor(List.of(nodes));
+    }
 
     /**
      * Returns the inference node by json spec
@@ -53,34 +66,53 @@ public class Not implements InferenceNode {
      * @param root    the document root
      * @param locator the locator
      */
-    public static Not fromJson(JsonNode root, Locator locator) {
+    public static Xor fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
-        return new Not(InferenceNode.fromJson(root, locator.path("expression")));
+        List<InferenceNode> expressions = InferenceNode.listFromNode(root, locator.path("expressions"));
+        return new Xor(expressions);
     }
 
-    private final InferenceNode expression;
+    private final List<InferenceNode> expressions;
 
     /**
-     * Creates the not node
+     * Creates the and node
      *
-     * @param expression the expression
+     * @param expressions the expression
      */
-    public Not(InferenceNode expression) {
-        this.expression = requireNonNull(expression);
+    public Xor(List<InferenceNode> expressions) {
+        this.expressions = requireNonNull(expressions);
     }
 
     @Override
     public double evaluate(Model model, Map<String, Double> evidences) {
-        return 1 - expression.evaluate(model, evidences);
+        double[] values = expressions.stream()
+                .mapToDouble(node -> node.evaluate(model, evidences))
+                .toArray();
+        double result = 0;
+        for (int i = 0; i < values.length; i++) {
+            double exp = 1;
+            for (int j = 0; j < values.length; j++) {
+                double value = i == j ? values[j] : 1 - values[j];
+                exp = min(exp, value);
+            }
+            result = max(result, exp);
+        }
+        return result;
     }
 
     @Override
     public Stream<String> getDependencies() {
-        return expression.getDependencies();
+        return expressions.stream()
+                .map(InferenceNode::getDependencies)
+                .reduce(Stream::concat)
+                .orElse(Stream.of())
+                .distinct();
     }
 
     @Override
     public String toString() {
-        return "not(" + expression + ")";
+        return "xor(" + expressions.stream()
+                .map(InferenceNode::toString)
+                .collect(Collectors.joining(", ")) + ")";
     }
 }

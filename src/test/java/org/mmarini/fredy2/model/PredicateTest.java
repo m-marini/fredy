@@ -34,15 +34,18 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mmarini.TestFunctions.text;
 import static org.mmarini.yaml.Utils.fromText;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class PredicateTest implements TestUtils {
 
@@ -50,10 +53,9 @@ class PredicateTest implements TestUtils {
     void createDependencies() {
         // Given ...
         Predicate p = new Predicate("a");
-        Set<String> deps = new HashSet<>();
 
         // When ...
-        p.createDependencies(deps);
+        Collection<String> deps = p.getDependencies().collect(Collectors.toList());
 
         // Then ...
         assertThat(deps, containsInAnyOrder("a"));
@@ -66,18 +68,13 @@ class PredicateTest implements TestUtils {
         Predicate p = new Predicate("a");
         Model model = mock(Model.class);
 
-        Evidences evidences = mock(Evidences.class);
-        when(evidences.contains("a")).thenReturn(true);
-        when(evidences.get("a")).thenReturn(a);
+        Map<String, Double> evidences = Map.of("a", a);
 
         // When ...
         double value = p.evaluate(model, evidences);
 
         // Then ...
         assertEquals(a, value);
-        verify(evidences).contains("a");
-        verify(evidences).get("a");
-        verifyNoInteractions(model);
     }
 
     @ParameterizedTest
@@ -86,9 +83,7 @@ class PredicateTest implements TestUtils {
         // Given ...
         Predicate p = new Predicate("a");
 
-        Evidences evidences = mock(Evidences.class);
-        when(evidences.contains("a")).thenReturn(false);
-
+        Map<String, Double> evidences = new HashMap<>();
         Model model = mock(Model.class);
         when(model.evaluate("a", evidences)).thenReturn(a);
 
@@ -97,8 +92,6 @@ class PredicateTest implements TestUtils {
 
         // Then ...
         assertEquals(a, value);
-        verify(evidences).contains("a");
-        verify(model).evaluate(eq("a"), same(evidences));
     }
 
     @Test

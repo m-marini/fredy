@@ -27,81 +27,61 @@
 
 package org.mmarini.fredy2.model;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
+import java.util.StringJoiner;
 
 import static java.util.Objects.requireNonNull;
 
 /**
- * Asserts the value of expression to a predicate
+ * Gets the value and id of predicate
  */
-public class Assertion {
-
-    private final String id;
-    private final InferenceNode expression;
+public class PredicateStatus {
+    protected final String id;
+    protected final double truth;
 
     /**
-     * Creates the assignment
+     * Creates the predicate status
      *
-     * @param id         the identifier
-     * @param expression the expression
+     * @param id    the identifier
+     * @param truth the value
      */
-    public Assertion(String id, InferenceNode expression) {
+    public PredicateStatus(String id, double truth) {
         this.id = requireNonNull(id);
-        this.expression = requireNonNull(expression);
-    }
-
-    /**
-     * Applies the assertion to the evidence in the model
-     *
-     * @param model     the model
-     * @param evidences the evidences
-     */
-    public void apply(Model model, Evidences evidences) {
-        if (!evidences.contains(id)) {
-            evidences.put(id, expression.evaluate(model, evidences));
-        }
-    }
-
-    /**
-     * Returns the dependencies
-     */
-    public Set<String> createDependencies() {
-        Set<String> result = new HashSet<>();
-        expression.createDependencies(result);
-        return result;
+        this.truth = truth;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Assertion that = (Assertion) o;
-        return id.equals(that.id);
+        PredicateStatus that = (PredicateStatus) o;
+        return Double.compare(that.truth, truth) == 0 && id.equals(that.id);
     }
 
     /**
-     * Returns the expression
-     */
-    public InferenceNode getExpression() {
-        return expression;
-    }
-
-    /**
-     * Returns the assignment identifier
+     * Returns the identifier
      */
     public String getId() {
         return id;
     }
 
+    /**
+     * Returns the truth of predicate
+     */
+    public double getTruth() {
+        return truth;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, truth);
     }
 
     @Override
     public String toString() {
-        return "'" + id + "' := " + expression;
+        return new StringJoiner(", ", PredicateStatus.class.getSimpleName() + "[", "]")
+                .add("id='" + id + "'")
+                .add("truth=" + truth)
+                .toString();
     }
 }

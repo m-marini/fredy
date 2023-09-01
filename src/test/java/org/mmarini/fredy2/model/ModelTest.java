@@ -28,86 +28,107 @@
 package org.mmarini.fredy2.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mmarini.yaml.schema.Locator;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.stream.Stream;
 
-import static java.lang.Math.sqrt;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mmarini.TestFunctions.text;
-import static org.mmarini.fredy2.model.Evidences.UNKNOWN_VALUE;
+import static org.mmarini.fredy2.model.Model.UNKNOWN_VALUE;
 import static org.mmarini.yaml.Utils.fromText;
-import static org.mockito.Mockito.*;
 
 class ModelTest implements TestUtils {
+    @ParameterizedTest
+    @CsvSource({
+            "0.5, 0.5, 0, 0, a b, a b, a, a, 0",
+            "0  , 0  , 0, 1, a b, a  , a, a, 0",
+            "1  , 1  , 0, 1, a b, a  , a, a, 0",
 
-    @Test
-    void applyEmpty() {
+            "0.5, 0.5, 0, 0, a b, a b, a, b, -1",
+            "0.5, 0.5, 0, 0, a b, a  , a, a, -1",
+            "0.5, 0.5, 1, 0, a b, a b, a, a, -1",
+            "0.5, 0  , 0, 0, a b, a b, a, a, -1",
+            "0.5, 1  , 0, 0, a b, a b, a, a, -1",
+            "1  , 0  , 0, 0, a b, a b, a, a, -1",
+
+            "0.5, 0.5, 0, 0, a b, a b, b, a, 1",
+            "0.5, 0.5, 0, 0, a  , a b, a, a, 1",
+            "0.5, 0.5, 0, 1, a b, a b, a, a, 1",
+            "0  , 0.5, 0, 1, a b, a b, a, a, 1",
+            "1  , 0.5, 0, 1, a b, a b, a, a, 1",
+            "0  , 1  , 0, 1, a b, a b, a, a, 1",
+    })
+    void compareAxioms(double aTruth, double bTruth,
+                       double aMax, double bMax,
+                       String aHyps, String bHyps,
+                       String a, String b,
+                       int expected
+    ) {
         // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Predicate("b")),
-                new Assertion("b", new Predicate("c"))
-        );
-        Model model = Model.create(assertions);
-
-        Evidences evidences = Evidences.empty();
+        AxiomStatus aAxiom = new AxiomStatus(a, aTruth, aMax, List.of(aHyps.split(" ")));
+        AxiomStatus bAxiom = new AxiomStatus(b, bTruth, bMax, List.of(bHyps.split(" ")));
 
         // When ...
-        Evidences result = model.apply(evidences);
+        int result = Model.AXIOM_STATUS_COMPARATOR.compare(aAxiom, bAxiom);
 
         // Then ...
-        assertTrue(result.contains("a"));
-        assertTrue(result.contains("b"));
-        assertTrue(result.contains("c"));
-        assertEquals(UNKNOWN_VALUE, result.get("a"));
-        assertEquals(UNKNOWN_VALUE, result.get("b"));
-        assertEquals(UNKNOWN_VALUE, result.get("c"));
+        assertEquals(expected, result);
     }
 
-    @Test
-    void applyNotEmpty() {
-        // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Not(new Predicate("b"))),
-                new Assertion("b", new Predicate("c"))
-        );
-        Model model = Model.create(assertions);
+    @ParameterizedTest
+    @CsvSource({
+            "0.5, 0.5, a, a, 0",
+            "0, 0, a, a, 0",
+            "1, 1, a, a, 0",
 
-        Evidences evidences = Evidences.empty().put("c", 0.3);
+            "0.5, 0.5, a, b, -1",
+            "0, 0.5, a, a, -1",
+            "1, 0.5, a, a, -1",
+            "0, 0, a, b, -1",
+            "1, 1, a, b, -1",
+            "1, 0, a, a, -1",
+
+            "0.5, 0.5, b, a, 1",
+            "0, 0, b, a, 1",
+            "1, 1, b, a, 1",
+            "0.5, 0, a, a, 1",
+            "0.5, 1, a, a, 1",
+            "0, 1, a, a, 1",
+    })
+    void comparePredicate(double aTruth, double bTruth,
+                          String a, String b,
+                          int expected
+    ) {
+        // Given ...
+        PredicateStatus aAxiom = new PredicateStatus(a, aTruth);
+        PredicateStatus bAxiom = new PredicateStatus(b, bTruth);
 
         // When ...
-        Evidences result = model.apply(evidences);
+        int result = Model.PREDICATE_STATUS_COMPARATOR.compare(aAxiom, bAxiom);
 
         // Then ...
-        assertTrue(result.contains("a"));
-        assertTrue(result.contains("b"));
-        assertTrue(result.contains("c"));
-        assertEquals(0.7, result.get("a"));
-        assertEquals(0.3, result.get("b"));
-        assertEquals(0.3, result.get("c"));
+        assertEquals(expected, result);
     }
 
     @Test
     void createDependencies() {
         // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Predicate("b")),
-                new Assertion("b", new Predicate("c"))
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Predicate("b"),
+                "b", new Predicate("c")
         );
 
         // When ...
-        Map<String, Set<String>> dependencies = Model.createDependencies(assertions);
+        Map<String, Collection<String>> dependencies = Model.createDependencies(assertions);
 
         // Then ...
         assertThat(dependencies, hasEntry(equalTo("a"),
@@ -119,88 +140,124 @@ class ModelTest implements TestUtils {
     @Test
     void createUnknownAxioms() {
         // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Predicate("b")),
-                new Assertion("b", new Predicate("c"))
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Predicate("b"),
+                "b", new Predicate("c")
         );
         Model model = Model.create(assertions);
 
         // When ...
-        Evidences evidences = model.createUnknownAxioms();
+        Map<String, Double> evidences = model.createUnknownAxioms();
 
-        assertThat(evidences.getHypothesis(), containsInAnyOrder("a"));
-        assertThat(evidences.getInferences(), containsInAnyOrder("b"));
-        assertThat(evidences.getAxioms(), containsInAnyOrder("c"));
-
-        assertFalse(evidences.contains("a"));
-        assertFalse(evidences.contains("b"));
-        assertTrue(evidences.contains("c"));
-        assertEquals(UNKNOWN_VALUE, evidences.get("c"));
+        assertThat(evidences, hasEntry("c", UNKNOWN_VALUE));
+        assertEquals(1, evidences.size());
     }
 
     @Test
     void evaluateExists() {
         // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Predicate("b")),
-                new Assertion("b", new Predicate("c"))
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Predicate("b"),
+                "b", new Predicate("c")
         );
         Model model = Model.create(assertions);
 
-        Evidences evidences = mock();
-        when(evidences.contains("b")).thenReturn(false);
-        when(evidences.contains("c")).thenReturn(true);
-        when(evidences.get("c")).thenReturn(0.3);
-        when(evidences.get("b")).thenReturn(0.3);
+        Map<String, Double> evidences = Map.of("b", 0.3, "c", 0.3);
 
         // When ...
         double value = model.evaluate("b", evidences);
 
         // Then ...
         assertEquals(0.3, value);
-        verify(evidences, times(2)).contains("b");
-        verify(evidences, times(1)).contains("c");
-        verify(evidences).get("c");
-        verify(evidences).put("b", 0.3);
-        verify(evidences).get("b");
-        verifyNoMoreInteractions(evidences);
     }
 
     @Test
     void evaluateNoExists() {
         // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Predicate("b")),
-                new Assertion("b", new Predicate("c"))
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Predicate("b"),
+                "b", new Predicate("c")
         );
         Model model = Model.create(assertions);
 
-        Evidences evidences = mock();
-        when(evidences.contains("c")).thenReturn(false);
-        when(evidences.get("c")).thenReturn(UNKNOWN_VALUE);
+        Map<String, Double> evidences = new HashMap<>();
 
         // When ...
         double value = model.evaluate("c", evidences);
 
         // Then ...
         assertEquals(UNKNOWN_VALUE, value);
-        verify(evidences).contains("c");
-        verify(evidences).put("c", UNKNOWN_VALUE);
-        verify(evidences).get("c");
-        verifyNoMoreInteractions(evidences);
+        assertThat(evidences, hasEntry("c", UNKNOWN_VALUE));
+        assertEquals(1, evidences.size());
+    }
+
+    @Test
+    void extractClosure() {
+        // Given ...
+        /*
+        e  a
+        |/ \
+        b   c
+        |
+        d
+         */
+        Map<String, Collection<String>> dependencies = Map.of(
+                "a", List.of("b", "c"),
+                "b", List.of("d"),
+                "e", List.of("b")
+        );
+
+        // When ...
+        Map<String, Collection<String>> result = Model.extractReverseClosure(dependencies);
+
+        // Then ...
+        assertThat(result, hasEntry(equalTo("a"), empty()));
+        assertThat(result, hasEntry(equalTo("b"), containsInAnyOrder("a", "e")));
+        assertThat(result, hasEntry(equalTo("c"), containsInAnyOrder("a")));
+        assertThat(result, hasEntry(equalTo("d"), containsInAnyOrder("a", "b", "e")));
+        assertThat(result, hasEntry(equalTo("e"), empty()));
+        assertEquals(5, result.size());
+    }
+
+    @Test
+    void extractHypothesisByAxiom() {
+        // Given ...
+        /*
+        e  a
+        |/ \
+        b   c
+        |
+        d
+         */
+        Map<String, Collection<String>> closure = Map.of(
+                "a", List.of(),
+                "b", List.of("a", "e"),
+                "c", List.of("a"),
+                "d", List.of("a", "b", "c", "e"),
+                "e", List.of()
+        );
+        Collection<String> axioms = List.of("c", "d");
+        Collection<String> hypothesis = List.of("a", "e");
+
+        // When ...
+        Map<String, Collection<String>> result = Model.extractHypothesisByAxiom(closure, axioms, hypothesis);
+
+        // Then ...
+        assertThat(result, hasEntry(equalTo("c"), containsInAnyOrder("a")));
+        assertThat(result, hasEntry(equalTo("d"), containsInAnyOrder("a", "e")));
     }
 
     @Test
     void findHypothesis() {
         // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Predicate("b")),
-                new Assertion("b", new Predicate("c"))
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Predicate("b"),
+                "b", new Predicate("c")
         );
-        Map<String, Set<String>> dependencies = Model.createDependencies(assertions);
+        Map<String, Collection<String>> dependencies = Model.createDependencies(assertions);
 
         // When ...
-        Set<String> hypothesis = Model.findHypothesis(dependencies);
+        Collection<String> hypothesis = Model.findHypothesis(dependencies);
 
         // Then ...
         assertThat(hypothesis, containsInAnyOrder("a"));
@@ -230,182 +287,271 @@ class ModelTest implements TestUtils {
 
     @ParameterizedTest
     @CsvSource({
-            "   0,    0,    0,    0",
-            "   0, 0.25,    1,    0",
-            "   0,  0.5,    1,    0",
-            "   0, 0.75,    1,    0",
-            "   0,    1,    1,    0",
-            "0.25,    0,    0,    1",
-            "0.25, 0.25,    0,    0",
-            "0.25,  0.5,    1,    0",
-            "0.25, 0.75,    1,    0",
-            "0.25,    1,    1,    0",
-            " 0.5,    0,    0,    1",
-            " 0.5, 0.25,    0,    1",
-            " 0.5,  0.5,    1,    1",
-            " 0.5, 0.75,    1,    0",
-            " 0.5,    1,    1,    0",
-            "0.75,    0,    0,    1",
-            "0.75, 0.25,    0,    1",
-            "0.75,  0.5,    0,    1",
-            "0.75, 0.75,    1,    1",
-            "0.75,    1,    1,    0",
-            "   1,    0,    0,    1",
-            "   1, 0.25,    0,    1",
-            "   1,  0.5,    0,    1",
-            "   1, 0.75,    0,    1",
-            "   1,    1,    1,    1",
+            "0  , 0  , a, b",
+            "0  , 0.5, a, b",
+            "0  , 1  , b, a",
+            "0.5, 0  , b, a",
+            "0.5, 0.5, a, b",
+            "0.5, 1  , b, a",
+            "1  , 0  , a, b",
+            "1  , 0.5, a, b",
+            "1  , 1  , a, b",
     })
-    void gradAnd(double b, double c, double a_b, double a_c) {
-        // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", And.create(
-                        new Predicate("b"),
-                        new Predicate(("c"))
-                ))
+    void getHypothesis(double a, double b, String h0, String h1) {
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Predicate("c"),
+                "b", new Predicate("d")
         );
         Model model = Model.create(assertions);
-        Evidences axioms = model.createUnknownAxioms()
-                .put("b", b)
-                .put("c", c);
-        Evidences result = model.apply(axioms);
+
+        Map<String, Double> evidences = Map.of("a", a, "b", b);
 
         // When ...
-        Gradient grad = model.gradient(result);
+        List<PredicateStatus> result = model.getHypothesis(evidences);
 
         // Then ...
-        assertThat(grad.get("a", "b"), closeTo(a_b, 1e-3));
-        assertThat(grad.get("a", "c"), closeTo(a_c, 1e-3));
-    }
-
-    @ParameterizedTest
-    @MethodSource("singleValues")
-    void gradNot(double c) {
-        // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Not(new Predicate("b"))),
-                new Assertion("b", new Predicate("c"))
-        );
-        Model model = Model.create(assertions);
-        Evidences axioms = model.createUnknownAxioms()
-                .put("c", c);
-        Evidences result = model.apply(axioms);
-
-        // When ...
-        Gradient grad = model.gradient(result);
-        assertThat(grad.get("a", "c"), closeTo(-1, 1e-3));
-        assertThat(grad.get("b", "c"), closeTo(1, 1e-3));
-    }
-
-    @ParameterizedTest
-    @MethodSource("singleValues")
-    void gradPredicate(double c) {
-        // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Predicate("b")),
-                new Assertion("b", new Predicate("c"))
-        );
-        Model model = Model.create(assertions);
-        Evidences axioms = model.createUnknownAxioms()
-                .put("c", c);
-        Evidences result = model.apply(axioms);
-
-        // When ...
-        Gradient grad = model.gradient(result);
-        assertThat(grad.get("a", "c"), closeTo(1, 1e-3));
-        assertThat(grad.get("b", "c"), closeTo(1, 1e-3));
-    }
-
-    @ParameterizedTest
-    @MethodSource("singleValues")
-    void gradSomewhat(double c) {
-        // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Somewhat(new Predicate("c")))
-        );
-        Model model = Model.create(assertions);
-        Evidences axioms = model.createUnknownAxioms()
-                .put("c", c);
-        Evidences result = model.apply(axioms);
-
-        // When ...
-        Gradient grad = model.gradient(result);
-
-        // Then ...
-        double expected = c > 0 ? 1d / 2 / sqrt(c) : 1e3;
-        double actual = grad.get("a", "c");
-        assertThat(actual, closeTo(expected, 1e-3));
-    }
-
-    @ParameterizedTest
-    @MethodSource("singleValues")
-    void gradVery(double c) {
-        // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", new Very(new Predicate("b"))),
-                new Assertion("b", new Predicate("c"))
-        );
-        Model model = Model.create(assertions);
-        Evidences axioms = model.createUnknownAxioms()
-                .put("c", c);
-        Evidences result = model.apply(axioms);
-
-        // When ...
-        Gradient grad = model.gradient(result);
-        assertThat(grad.get("a", "c"), closeTo(2 * c, 1e-3));
-        assertThat(grad.get("b", "c"), closeTo(1, 1e-3));
+        assertThat(result, contains(
+                hasProperty("id", equalTo(h0)),
+                hasProperty("id", equalTo(h1))
+        ));
     }
 
     @ParameterizedTest
     @CsvSource({
-            "   0,    0, b, c",
-            "   0, 0.25, b, c",
-            "   0,  0.5, b, c",
-            "   0, 0.75, b, c",
-            "   0,    1, b, c",
-            "0.25,    0, c, b",
-            "0.25, 0.25, b, c",
-            "0.25,  0.5, b, c",
-            "0.25, 0.75, b, c",
-            "0.25,    1, b, c",
-            " 0.5,    0, c, b",
-            " 0.5, 0.25, c, b",
-            " 0.5,  0.5, b, c",
-            " 0.5, 0.75, b, c",
-            " 0.5,    1, b, c",
-            "0.75,    0, c, b",
-            "0.75, 0.25, c, b",
-            "0.75,  0.5, c, b",
-            "0.75, 0.75, b, c",
-            "0.75,    1, b, c",
-            "   1,    0, c, b",
-            "   1, 0.25, c, b",
-            "   1,  0.5, c, b",
-            "   1, 0.75, c, b",
-            "   1,    1, b, c",
+            "0  , 0  , a, b",
+            "0  , 0.5, a, b",
+            "0  , 1  , b, a",
+            "0.5, 0  , b, a",
+            "0.5, 0.5, a, b",
+            "0.5, 1  , b, a",
+            "1  , 0  , a, b",
+            "1  , 0.5, a, b",
+            "1  , 1  , a, b",
     })
-    void sortedAxioms(double b, double c, String a1, String a2) {
-        // Given ...
-        List<Assertion> assertions = List.of(
-                new Assertion("a", And.create(
-                        new Predicate("b"),
-                        new Predicate("c")
-                ))
+    void getInferences(double a, double b, String h0, String h1) {
+        Map<String, InferenceNode> assertions = Map.of(
+                "root", And.create(new Predicate("a"), new Predicate("b")),
+                "a", new Predicate("c"),
+                "b", new Predicate("d")
         );
         Model model = Model.create(assertions);
-        Evidences axioms = model.createUnknownAxioms()
-                .put("b", b)
-                .put("c", c);
-        Evidences result = model.apply(axioms);
+
+        Map<String, Double> evidences = Map.of("a", a, "b", b);
 
         // When ...
-        List<String> sorted = model.getSortedAxioms(result).collect(Collectors.toList());
-        assertThat(sorted, contains(a1, a2));
+        List<PredicateStatus> result = model.getInferences(evidences);
+
+        // Then ...
+        assertThat(result, contains(
+                hasProperty("id", equalTo(h0)),
+                hasProperty("id", equalTo(h1))
+        ));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "0  , 0  , ,   ",
+            "0  , 0.5, ,b  ",
+            "0  , 1  , ,   ",
+            "0.5, 0  ,a,a  ",
+            "0.5, 0.5,a,a b",
+            "0.5, 1  ,a,a  ",
+            "1  , 0  , ,   ",
+            "1  , 0.5, ,b  ",
+            "1  , 1  , ,   ",
+    })
+    void getUnknownHypothesis(double a, double b, String expC, String expD) {
+        // Given ...
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", And.create(
+                        new Predicate("c"),
+                        new Predicate(("d"))
+                ),
+                "b", new Predicate(("d")
+                )
+        );
+        Model model = Model.create(assertions);
+        Map<String, Double> evidences = Map.of("a", a, "b", b);
+
+        // When ...
+        Map<String, Collection<String>> result = model.getUnknownHypothesis(evidences);
+
+        // Then ...
+        Matcher<Iterable<? extends String>> matcherC = containsInAnyOrder(
+                (expC != null ? Arrays.stream(expC.split(" ")) : Stream.empty())
+                        .map(Matchers::equalTo)
+                        .toArray(Matcher[]::new));
+        Matcher<Iterable<? extends String>> matcherD = containsInAnyOrder(
+                (expD != null ? Arrays.stream(expD.split(" ")) : Stream.empty())
+                        .map(Matchers::equalTo)
+                        .toArray(Matcher[]::new));
+        assertThat(result, hasEntry(equalTo("c"), matcherC));
+        assertThat(result, hasEntry(equalTo("d"), matcherD));
+    }
+
+    @Test
+    void inferEmpty() {
+        // Given ...
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Predicate("b"),
+                "b", new Predicate("c")
+        );
+        Model model = Model.create(assertions);
+
+        Map<String, Double> evidences = new HashMap<>();
+
+        // When ...
+        Map<String, Double> result = model.infer(evidences);
+
+        // Then ...
+        assertThat(result, hasEntry("a", UNKNOWN_VALUE));
+        assertThat(result, hasEntry("b", UNKNOWN_VALUE));
+        assertThat(result, hasEntry("c", UNKNOWN_VALUE));
+    }
+
+    @Test
+    void inferNotEmpty() {
+        // Given ...
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Not(new Predicate("b")),
+                "b", new Predicate("c")
+        );
+        Model model = Model.create(assertions);
+
+        Map<String, Double> evidences = new HashMap<>(Map.of("c", 0.3));
+
+        // When ...
+        Map<String, Double> result = model.infer(evidences);
+
+        // Then ...
+        assertThat(result, hasEntry("a", 0.7));
+        assertThat(result, hasEntry("b", 0.3));
+        assertThat(result, hasEntry("c", 0.3));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "0  , 0  , 1  , 1",
+            "0  , 0.5, 1.5, 1",
+            "0  , 1  , 2  , 1",
+            "0.5, 0  , 1  , 1.5",
+            "0.5, 0.5, 1.5, 1.5",
+            "0.5, 1  , 2  , 1.5",
+            "1  , 0  , 1  , 2",
+            "1  , 0.5, 1.5, 2",
+            "1  , 1  , 2  , 2",
+    })
+    void maxAndOr(double c, double d, double xc, double xd) {
+        // Given ...
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", And.create(
+                        new Predicate("c"),
+                        new Predicate(("d"))
+                ),
+                "b", Or.create(
+                        new Predicate("c"),
+                        new Predicate(("d"))
+                )
+        );
+        Model model = Model.create(assertions);
+        Map<String, Double> axioms = new HashMap<>(Map.of("d", d, "c", c));
+        Map<String, Double> evidences = model.infer(axioms);
+
+        // When ...
+        Map<String, Double> result = model.getMaxTruthByAxiomsExtremes(evidences);
+
+        // Then ...
+        assertThat(result, hasEntry("c", xc));
+        assertThat(result, hasEntry("d", xd));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "0  , 2",
+            "0.5, 2",
+            "1  , 2",
+    })
+    void maxNot(double c, double xc) {
+        // Given ...
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Not(new Predicate("c")),
+                "b", new Not(new Predicate("c"))
+        );
+        Model model = Model.create(assertions);
+        Map<String, Double> axioms = new HashMap<>(Map.of("c", c));
+        Map<String, Double> evidences = model.infer(axioms);
+
+        // When ...
+        Map<String, Double> result = model.getMaxTruthByAxiomsExtremes(evidences);
+        assertThat(result, hasEntry("c", xc));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "0  , 2",
+            "0.5, 2",
+            "1  , 2",
+    })
+    void maxPredicate(double c, double xc) {
+        // Given ...
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Predicate("c"),
+                "b", new Predicate("c")
+        );
+        Model model = Model.create(assertions);
+        Map<String, Double> axioms = new HashMap<>(Map.of("c", c));
+        Map<String, Double> result = model.infer(axioms);
+
+        // When ...
+        Map<String, Double> grad = model.getMaxTruthByAxiomsExtremes(result);
+        assertThat(grad, hasEntry("c", xc));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "0  , 2",
+            "0.5, 2",
+            "1  , 2",
+    })
+    void maxSomewhat(double c, double xc) {
+        // Given ...
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Somewhat(new Predicate("c")),
+                "b", new Somewhat(new Predicate("c"))
+        );
+        Model model = Model.create(assertions);
+        Map<String, Double> axioms = new HashMap<>(Map.of("c", c));
+        Map<String, Double> evidences = model.infer(axioms);
+
+        // When ...
+        Map<String, Double> result = model.getMaxTruthByAxiomsExtremes(evidences);
+        assertThat(result, hasEntry("c", xc));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "0  , 2",
+            "0.5, 2",
+            "1  , 2",
+    })
+    void maxVery(double c, double xc) {
+        // Given ...
+        Map<String, InferenceNode> assertions = Map.of(
+                "a", new Very(new Predicate("c")),
+                "b", new Very(new Predicate("c"))
+        );
+        Model model = Model.create(assertions);
+        Map<String, Double> axioms = new HashMap<>(Map.of("c", c));
+        Map<String, Double> evidences = model.infer(axioms);
+
+        // When ...
+        Map<String, Double> result = model.getMaxTruthByAxiomsExtremes(evidences);
+        assertThat(result, hasEntry("c", xc));
     }
 
     @Test
     void validateAcycled() {
-        Map<String, Set<String>> dependencies = Map.of(
+        Map<String, Collection<String>> dependencies = Map.of(
                 "a", Set.of("b", "c"),
                 "b", Set.of("d", "e"),
                 "c", Set.of("e")
@@ -415,10 +561,10 @@ class ModelTest implements TestUtils {
 
     @Test
     void validateCycled() {
-        Map<String, Set<String>> dependencies = Map.of(
+        Map<String, Collection<String>> dependencies = Map.of(
                 "a", Set.of("b", "c"),
-                "b", Set.of("d", "e"),
-                "e", Set.of("b")
+                "b", Set.of("d", "e", "b"),
+                "e", Set.of("b", "e")
         );
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> Model.validate(dependencies));
         assertThat(ex.getMessage(), matchesPattern("Cycles on nodes \\[b, e]"));

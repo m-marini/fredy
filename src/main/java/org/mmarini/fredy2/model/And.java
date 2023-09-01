@@ -33,8 +33,8 @@ import org.mmarini.yaml.schema.Validator;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.Math.min;
 import static java.util.Objects.requireNonNull;
@@ -83,17 +83,21 @@ public class And implements InferenceNode {
     }
 
     @Override
-    public void createDependencies(Set<String> dependencies) {
-        expressions.forEach(n -> n.createDependencies(dependencies));
-    }
-
-    @Override
-    public double evaluate(Model model, Evidences evidences) {
+    public double evaluate(Model model, Map<String, Double> evidences) {
         double result = 1;
         for (InferenceNode expression : expressions) {
             result = min(result, expression.evaluate(model, evidences));
         }
         return result;
+    }
+
+    @Override
+    public Stream<String> getDependencies() {
+        return expressions.stream()
+                .map(InferenceNode::getDependencies)
+                .reduce(Stream::concat)
+                .orElse(Stream.of())
+                .distinct();
     }
 
     @Override

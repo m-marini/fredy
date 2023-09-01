@@ -29,19 +29,14 @@ package org.mmarini.fredy2.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.mmarini.Tuple2;
-import org.mmarini.yaml.Utils;
 import org.mmarini.yaml.schema.Locator;
 import org.mmarini.yaml.schema.Validator;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.lang.Math.abs;
+import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.Utils.zipWithIndex;
@@ -52,39 +47,56 @@ import static org.mmarini.yaml.schema.Validator.objectAdditionalProperties;
  */
 public class Model {
     public static final Validator JSON_SPEC = objectAdditionalProperties(InferenceNode.JSON_SPEC);
-    private static final double DX = 1e-6;
+    public static final double UNKNOWN_VALUE = 0.5;
+
+    /**
+     * Returns the comparator of two predicate
+     */
+    static final Comparator<PredicateStatus> PREDICATE_STATUS_COMPARATOR = Comparator.<PredicateStatus>comparingDouble(x -> {
+                double truth = x.getTruth();
+                return truth != UNKNOWN_VALUE ? truth : -2;
+            })
+            .reversed()
+            .thenComparing(PredicateStatus::getId);
+
+    /**
+     * Returns the comparator of two axioms
+     */
+    static final Comparator<AxiomStatus> AXIOM_STATUS_COMPARATOR =
+            Comparator.<AxiomStatus>comparingDouble(x -> {
+                        double truth = x.getTruth();
+                        return truth != UNKNOWN_VALUE ? truth : 2;
+                    })
+                    .thenComparingDouble(a ->
+                            a.getTruth() == UNKNOWN_VALUE ? a.getMaxHypothesis() : 0d
+                    )
+                    .thenComparingInt(a ->
+                            a.getTruth() == UNKNOWN_VALUE
+                                    ? a.getHypothesis().size()
+                                    : 0)
+                    .reversed()
+                    .thenComparing(AxiomStatus::getId);
 
     /**
      * Returns the model from assertions
      *
      * @param assertions the assignment
      */
-    public static Model create(Assertion... assertions) {
-        return create(List.of(assertions));
-    }
-
-    /**
-     * Returns the model from assertions
-     *
-     * @param assertions the assignment
-     */
-    public static Model create(List<Assertion> assertions) {
-        Map<String, Set<String>> dependencies = createDependencies(assertions);
-        validate(dependencies);
-        Set<String> hypothesis = findHypothesis(dependencies);
-        Map<String, Assertion> assignmentById = assertions.stream()
-                .collect(Collectors.toMap(
-                        Assertion::getId,
-                        Function.identity()
-                ));
-        Set<String> inferences = dependencies.keySet().stream()
+    public static Model create(Map<String, InferenceNode> assertions) {
+        Map<String, Collection<String>> dependencies = createDependencies(assertions);
+        Map<String, Collection<String>> closure = extractReverseClosure(dependencies);
+        // check for cycle tree
+        validate(closure);
+        Collection<String> hypothesis = findHypothesis(dependencies);
+        Collection<String> inferences = dependencies.keySet().stream()
                 .filter(id -> !hypothesis.contains(id))
                 .collect(Collectors.toSet());
-        Set<String> axioms = dependencies.values().stream()
-                .flatMap(Set::stream)
+        Collection<String> axioms = dependencies.values().stream()
+                .flatMap(Collection::stream)
                 .filter(id -> !(hypothesis.contains(id) || inferences.contains(id)))
                 .collect(Collectors.toSet());
-        return new Model(assignmentById, hypothesis, inferences, axioms);
+        Map<String, Collection<String>> hypothesisByAxiom = extractHypothesisByAxiom(closure, axioms, hypothesis);
+        return new Model(assertions, hypothesis, inferences, axioms, hypothesisByAxiom);
     }
 
     /**
@@ -93,7 +105,7 @@ public class Model {
      * @param dependencies the dependencies
      * @param nodes        the nodes
      */
-    private static boolean[][] createClosure(Map<String, Set<String>> dependencies, List<String> nodes) {
+    private static boolean[][] createClosure(Map<String, Collection<String>> dependencies, List<String> nodes) {
         int n = nodes.size();
         boolean[][] matrix = new boolean[n][n];
         // Generate adjacent matrix
@@ -125,13 +137,52 @@ public class Model {
      *
      * @param assertions the assertions
      */
-    static Map<String, Set<String>> createDependencies(List<Assertion> assertions) {
-        Map<String, Set<String>> dependenciesMap = new HashMap<>();
-        for (Assertion assertion : assertions) {
-            Set<String> dependencies = assertion.createDependencies();
-            dependenciesMap.put(assertion.getId(), dependencies);
-        }
-        return dependenciesMap;
+    static Map<String, Collection<String>> createDependencies(Map<String, InferenceNode> assertions) {
+        return Tuple2.stream(assertions)
+                .map(t -> t.setV2((Collection<String>) t._2.getDependencies()
+                        .collect(Collectors.toSet())))
+                .collect(Tuple2.toMap());
+    }
+
+    /**
+     * Returns the hypothesis by axiom
+     *
+     * @param closure the reverse closure
+     */
+
+    static Map<String, Collection<String>> extractHypothesisByAxiom(Map<String, Collection<String>> closure,
+                                                                    Collection<String> axioms, Collection<String> hypothesis) {
+        return axioms.stream().map(axiom -> Tuple2.of(axiom,
+                (Collection<String>) closure.get(axiom).stream()
+                        .filter(hypothesis::contains)
+                        .collect(Collectors.toList())
+        )).collect(Tuple2.toMap());
+    }
+
+    /**
+     * Returns the dependent assertions by predicate
+     *
+     * @param dependencies the dependencies
+     */
+    static Map<String, Collection<String>> extractReverseClosure(Map<String, Collection<String>> dependencies) {
+        List<String> nodes = Stream.concat(
+                        dependencies.keySet().stream(),
+                        dependencies.values().stream()
+                                .flatMap(Collection::stream))
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        // Creates closure matrix
+        boolean[][] closure = createClosure(dependencies, nodes);
+        // Extract reverse closure dependencies (antecedent -> consequent)
+        return zipWithIndex(nodes)
+                .map(antecedent -> Tuple2.of(antecedent._2,
+                        (Collection<String>) zipWithIndex(nodes)
+                                .filter(consequent -> closure[antecedent._1][consequent._1])
+                                .map(Tuple2::getV2)
+                                .collect(Collectors.toList()))
+                )
+                .collect(Tuple2.toMap());
     }
 
     /**
@@ -139,23 +190,13 @@ public class Model {
      *
      * @param dependencies the dependencies
      */
-    static Set<String> findHypothesis(Map<String, Set<String>> dependencies) {
+    static Collection<String> findHypothesis(Map<String, Collection<String>> dependencies) {
         Set<String> nodes = dependencies.values().stream()
-                .flatMap(Set::stream)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
         return dependencies.keySet().stream()
                 .filter(id -> !nodes.contains(id))
                 .collect(Collectors.toSet());
-    }
-
-    /**
-     * Returns the model from file
-     *
-     * @param file the file
-     * @throws IOException in case of error
-     */
-    public static Model fromFile(File file) throws IOException {
-        return Model.fromJson(Utils.fromFile(file), Locator.root());
     }
 
     /**
@@ -166,57 +207,28 @@ public class Model {
      */
     static Model fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
-        List<Assertion> assertions =
+        Map<String, InferenceNode> assertions =
                 locator.propertyNames(root)
                         .map(t -> {
                             String id = t._1;
                             InferenceNode expression = InferenceNode.fromJson(root, t._2);
-                            return new Assertion(id, expression);
+                            return Tuple2.of(id, expression);
                         })
-                        .collect(Collectors.toList());
+                        .collect(Tuple2.toMap());
         return create(assertions);
     }
 
     /**
-     * Returns the model from a resource
+     * Validates the reverse closure
      *
-     * @param resource the resource
-     * @throws IOException in case of error
-     */
-    public static Model fromResource(String resource) throws IOException {
-        return Model.fromJson(Utils.fromResource(resource), Locator.root());
-    }
-
-    /**
-     * Returns the model from a resource
-     *
-     * @param url the resource
-     * @throws IOException in case of error
-     */
-    public static Model fromUrl(String url) throws IOException {
-        return Model.fromJson(Utils.fromUrl(new URL(url)), Locator.root());
-    }
-
-    /**
-     * Validates the dependencies
-     *
-     * @param dependencies the dependencies
+     * @param closure the reverse closure
      * @throws IllegalArgumentException if dependencies are not valid
      */
-    static void validate(Map<String, Set<String>> dependencies) {
-        // check for cycle tree
-        List<String> nodes = Stream.concat(
-                        dependencies.keySet().stream(),
-                        dependencies.values().stream()
-                                .flatMap(Set::stream))
-                .distinct()
-                .sorted()
+    static void validate(Map<String, Collection<String>> closure) {
+        List<String> cycleNodes = Tuple2.stream(closure).filter(t ->
+                        t._2.contains(t._1)
+                ).map(Tuple2::getV1)
                 .collect(Collectors.toList());
-        boolean[][] closure = createClosure(dependencies, nodes);
-        Set<String> cycleNodes = zipWithIndex(nodes)
-                .filter(t -> closure[t._1][t._1])
-                .map(Tuple2::getV2)
-                .collect(Collectors.toSet());
         if (!cycleNodes.isEmpty()) {
             String cyclesStr = cycleNodes.stream()
                     .sorted()
@@ -226,45 +238,47 @@ public class Model {
         }
     }
 
-    private final Map<String, Assertion> assertions;
-    private final Set<String> hypothesis;
-    private final Set<String> inferences;
-    private final Set<String> axioms;
+    private final Map<String, InferenceNode> assertions;
+    private final Collection<String> hypothesis;
+    private final Collection<String> inferences;
+    private final Collection<String> axioms;
+    private final Map<String, Collection<String>> hypothesisByAxiom;
 
     /**
      * Creates the model
      *
-     * @param assertions the assertions
-     * @param hypothesis the hypothesis
-     * @param inferences the inferences identifiers
-     * @param axioms     the axiom identifiers
+     * @param assertions        the assertions
+     * @param hypothesis        the hypothesis
+     * @param inferences        the inferences identifiers
+     * @param axioms            the axiom identifiers
+     * @param hypothesisByAxiom yhe map of hypothesis by axiom
      */
-    protected Model(Map<String, Assertion> assertions, Set<String> hypothesis, Set<String> inferences, Set<String> axioms) {
+    protected Model(Map<String, InferenceNode> assertions, Collection<String> hypothesis, Collection<String> inferences,
+                    Collection<String> axioms, Map<String, Collection<String>> hypothesisByAxiom) {
         this.hypothesis = requireNonNull(hypothesis);
         this.assertions = requireNonNull(assertions);
         this.inferences = requireNonNull(inferences);
         this.axioms = requireNonNull(axioms);
+        this.hypothesisByAxiom = requireNonNull(hypothesisByAxiom);
     }
 
     /**
-     * Returns the results of inference model
+     * Returns the axioms only values
+     *
+     * @param evidences the evidences
      */
-    Evidences apply(Evidences facts) {
-        Evidences result = facts.copy().clearAssertions();
-        getHypothesisStream().forEach(assertion -> assertion.apply(this, result));
-        return result;
+    public Map<String, Double> createOnlyAxioms(Map<String, Double> evidences) {
+        return new HashMap<>(axioms.stream().map(id ->
+                Tuple2.of(id, evidences.getOrDefault(id, UNKNOWN_VALUE))
+        ).collect(Tuple2.toMap()));
     }
 
     /**
      * Returns the axioms evidences in unknown state
      */
-    public Evidences createUnknownAxioms() {
-        Evidences result = Evidences.empty()
-                .setAxioms(axioms.stream().sorted().collect(Collectors.toList()))
-                .setHypothesis(hypothesis)
-                .setInferences(inferences);
-        axioms.forEach(id -> result.put(id, Evidences.UNKNOWN_VALUE));
-        return result;
+    public Map<String, Double> createUnknownAxioms() {
+        return axioms.stream().map(id -> Tuple2.of(id, UNKNOWN_VALUE))
+                .collect(Tuple2.toMap());
     }
 
     /**
@@ -273,61 +287,31 @@ public class Model {
      * @param id        the predicate identifier
      * @param evidences the evidences
      */
-    public double evaluate(String id, Evidences evidences) {
-        if (!evidences.contains(id)) {
-            Assertion assertion = assertions.get(id);
-            if (assertion != null) {
-                assertion.apply(this, evidences);
-            } else {
-                // Unknown predicate
-                evidences.put(id, Evidences.UNKNOWN_VALUE);
-            }
+    public double evaluate(String id, Map<String, Double> evidences) {
+        Double value = evidences.get(id);
+        if (value != null) {
+            return value;
         }
-        return evidences.get(id);
-    }
-
-    /**
-     * Returns the assertion by identifier
-     *
-     * @param id the identifier
-     */
-    public Optional<Assertion> getAssertion(String id) {
-        return Optional.ofNullable(assertions.get(id));
+        InferenceNode expression = assertions.get(id);
+        double expValue = expression == null
+                ? UNKNOWN_VALUE
+                : expression.evaluate(this, evidences);
+        evidences.put(id, expValue);
+        return expValue;
     }
 
     /**
      * Returns the assertions
      */
-    public Map<String, Assertion> getAssertions() {
+    public Map<String, InferenceNode> getAssertions() {
         return assertions;
     }
 
     /**
      * Returns the axiom identifiers
      */
-    public Set<String> getAxioms() {
+    public Collection<String> getAxioms() {
         return axioms;
-    }
-
-    /**
-     * Returns the hypothesis identifiers
-     */
-    public Set<String> getHypothesis() {
-        return hypothesis;
-    }
-
-    /**
-     * Returns the stream of hypothesis
-     */
-    Stream<Assertion> getHypothesisStream() {
-        return hypothesis.stream().map(assertions::get);
-    }
-
-    /**
-     * Returns the inference identifiers
-     */
-    public Set<String> getInferences() {
-        return inferences;
     }
 
     /**
@@ -335,52 +319,115 @@ public class Model {
      *
      * @param evidences the evidences
      */
-    public Stream<String> getSortedAxioms(Evidences evidences) {
-        Gradient grad = gradient(evidences);
-        return axioms.stream()
-                .map(axiom -> {
-                    double maxAbsGrad = hypothesis.stream()
-                            .mapToDouble(hyp -> abs(grad.get(hyp, axiom)))
-                            .max()
-                            .orElse(0);
-                    return Tuple2.of(axiom, maxAbsGrad);
-                })
-                .sorted(Comparator.comparing(Tuple2::getV1))
-                .sorted(Comparator.comparingDouble(Tuple2<String, Double>::getV2).reversed())
-                .map(Tuple2::getV1);
+    public List<AxiomStatus> getAxioms(Map<String, Double> evidences) {
+        Map<String, Double> maxTruths = getMaxTruthByAxiomsExtremes(evidences);
+        Map<String, Collection<String>> unknownHypothesis = getUnknownHypothesis(evidences);
+        return axioms.stream().map(id -> new AxiomStatus(
+                        id,
+                        evidences.getOrDefault(id, UNKNOWN_VALUE),
+                        maxTruths.getOrDefault(id, 0d),
+                        unknownHypothesis.getOrDefault(id, List.of())
+                ))
+                .sorted(AXIOM_STATUS_COMPARATOR)
+                .collect(Collectors.toList());
     }
 
     /**
-     * Returns the gradient of model for the evidences
-     *
-     * @param evidences evidences
+     * Returns the hypothesis identifiers
      */
-    Gradient gradient(Evidences evidences) {
-        Gradient result = Gradient.empty();
-        for (String axiom : axioms) {
-            double x = evidences.get(axiom);
-            double dx = x >= 0.5 ? -DX : DX;
-            Evidences axioms1 = evidences.copy().clearAssertions();
-            axioms1.put(axiom, x + dx);
-            Evidences evidences1 = apply(axioms1);
-            for (String assertion : assertions.keySet()) {
-                double y1 = evidences1.get(assertion);
-                double y0 = evidences.get(assertion);
-                double grad = (y1 - y0) / dx;
-                result.put(assertion, axiom, grad);
-            }
-        }
-        return result;
+    public Collection<String> getHypothesis() {
+        return hypothesis;
+    }
+
+    /**
+     * Returns the sorted hypothesis status
+     *
+     * @param evidences the evidences
+     */
+    public List<PredicateStatus> getHypothesis(Map<String, Double> evidences) {
+        return hypothesis.stream().map(id -> new PredicateStatus(
+                        id, evidences.getOrDefault(id, UNKNOWN_VALUE)))
+                .sorted(PREDICATE_STATUS_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns the sorted inferences status
+     *
+     * @param evidences the evidences
+     */
+    public List<PredicateStatus> getInferences(Map<String, Double> evidences) {
+        return inferences.stream().map(id -> new PredicateStatus(
+                        id, evidences.getOrDefault(id, UNKNOWN_VALUE)))
+                .sorted(PREDICATE_STATUS_COMPARATOR)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns the inference identifiers
+     */
+    public Collection<String> getInferences() {
+        return inferences;
+    }
+
+    /**
+     * Returns the max level of hypothesis truth by axiom variation
+     *
+     * @param evidences the evidences
+     */
+    public Map<String, Double> getMaxTruthByAxiomsExtremes(Map<String, Double> evidences) {
+        return axioms.stream().map(axiom -> {
+                    // Computes the negated evidences
+                    Map<String, Double> negatedAxioms = createOnlyAxioms(evidences);
+                    negatedAxioms.put(axiom, 0d);
+                    Map<String, Double> negationEvidences = infer(negatedAxioms);
+
+                    // Computes the asserted evidences
+                    Map<String, Double> assertedAxioms = createOnlyAxioms(evidences);
+                    assertedAxioms.put(axiom, 1d);
+                    Map<String, Double> assertionEvidences = infer(assertedAxioms);
+
+                    // Extracts the maximum value between sum of negated hypothesis and asserted hypothesis
+                    double value = hypothesis.stream().map(hyp -> {
+                                // Extracts the negation hypotheses value
+                                double negationValue = negationEvidences.getOrDefault(hyp, 0d);
+                                // Extracts the assertion hypotheses value
+                                double assertionValue = assertionEvidences.getOrDefault(hyp, 0d);
+                                return new double[]{negationValue, assertionValue};
+                            }).reduce((a, b) ->
+                                    // Sum among all hypothesis
+                                    new double[]{a[0] + b[0], a[1] + b[1]})
+                            .map(a ->
+                                    // Extract the maximum
+                                    max(a[0], a[1]))
+                            .orElse(0d);
+                    return Tuple2.of(axiom, value);
+                })
+                .collect(Tuple2.toMap());
+    }
+
+    /**
+     * Returns the dependant unknown hypothesis by axiom
+     *
+     * @param evidences the evidences
+     */
+    Map<String, Collection<String>> getUnknownHypothesis(Map<String, Double> evidences) {
+        return Tuple2.stream(hypothesisByAxiom).map(t -> {
+                    Collection<String> hypothesis = t._2.stream()
+                            .filter(hyp -> evidences.getOrDefault(hyp, UNKNOWN_VALUE) == UNKNOWN_VALUE)
+                            .collect(Collectors.toList());
+                    return Tuple2.of(t._1, hypothesis);
+                })
+                .collect(Tuple2.toMap());
     }
 
     /**
      * Returns the sorted results of inference model
+     *
+     * @param facts the facts
      */
-    public Evidences infer(Evidences facts) {
-        Evidences result = facts.copy().clearAssertions();
-        getHypothesisStream().forEach(assertion -> assertion.apply(this, result));
-        Stream<String> sorted = getSortedAxioms(result);
-        result.setAxioms(sorted.collect(Collectors.toList()));
-        return result;
+    public Map<String, Double> infer(Map<String, Double> facts) {
+        assertions.keySet().forEach(id -> evaluate(id, facts));
+        return facts;
     }
 }

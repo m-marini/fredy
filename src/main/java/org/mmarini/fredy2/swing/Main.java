@@ -5,24 +5,34 @@ package org.mmarini.fredy2.swing;
 
 import hu.akarnokd.rxjava3.swing.SwingObservable;
 import io.reactivex.rxjava3.core.BackpressureStrategy;
-import org.mmarini.fredy2.model.Evidences;
+import org.mmarini.Tuple2;
+import org.mmarini.fredy2.model.AxiomStatus;
+import org.mmarini.fredy2.model.Definitions;
 import org.mmarini.fredy2.model.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import javax.swing.event.TableModelEvent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
 
+import static org.mmarini.Utils.zipWithIndex;
+import static org.mmarini.fredy2.model.Model.UNKNOWN_VALUE;
 import static org.mmarini.fredy2.swing.MessagesUtils.format;
 
 /**
  * The window app frame management
  */
 public class Main {
+    public static final int FRAME_WIDTH = 800;
+    public static final int FRAME_HEIGHT = 600;
     private static final String MAIN_INIT_ERROR = "Main.init.error"; //$NON-NLS-1$
     private static final String DEFAULT_RULES_YAML = "/animals.yml"; //$NON-NLS-1$
     private static final String MAIN_INFERENCES_LABEL = "Main.inferences.label"; //$NON-NLS-1$
@@ -34,7 +44,6 @@ public class Main {
     private static final String MAIN_OPEN_ACTION = "Main.open.action"; //$NON-NLS-1$
     private static final String MAIN_CLEAR_ACTION = "Main.clear.action"; //$NON-NLS-1$
     private static final String MAIN_ALERT_TITLE = "Main.alert.title"; //$NON-NLS-1$
-
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     /**
@@ -49,7 +58,7 @@ public class Main {
     private final JFrame frame;
     private final PredicateTableModel hypothesisTableModel;
     private final PredicateTableModel inferencesTableModel;
-    private final PredicateTableModel axiomsTableModel;
+    private final AxiomTableModel axiomsTableModel;
 
     private final JFileChooser fileChooser;
     private final JSplitPane verticalPane;
@@ -58,7 +67,7 @@ public class Main {
     private final JButton openButton;
     private final JButton clearButton;
     private Model model;
-    private Evidences evidences;
+    private Map<String, Double> evidences;
 
     /**
      *
@@ -66,7 +75,7 @@ public class Main {
     public Main() {
         frame = new JFrame(Messages.getString(MAIN_TITLE));
         fileChooser = new JFileChooser();
-        axiomsTableModel = new PredicateTableModel();
+        axiomsTableModel = new AxiomTableModel();
         inferencesTableModel = new PredicateTableModel();
         hypothesisTableModel = new PredicateTableModel();
         hsp = new JSplitPane();
@@ -111,16 +120,14 @@ public class Main {
      *
      */
     private void analyze() {
-        this.evidences = model.infer(evidences);
-        hypothesisTableModel.setPredicates(evidences.getHypothesisList());
-        inferencesTableModel.setPredicates(evidences.getInferencesList());
+        setEvidences(model.infer(model.createOnlyAxioms(evidences)));
     }
 
     /**
      * Returns the axioms panel
      */
     private Component createAxiomsPane() {
-        JScrollPane c = new JScrollPane(new PredicateTable(axiomsTableModel));
+        JScrollPane c = new JScrollPane(new AxiomTable(axiomsTableModel));
         c.setBorder(BorderFactory.createTitledBorder(Messages
                 .getString(MAIN_AXIOMS_LABEL)));
         return c;
@@ -130,11 +137,9 @@ public class Main {
      * Creates the flows
      */
     private void createFlow() {
-        SwingObservable.tableModel(axiomsTableModel)
-                .toFlowable(BackpressureStrategy.BUFFER)
+        axiomsTableModel.readAxiomStates()
                 .doOnNext(this::handleAxiomsChanged)
                 .subscribe();
-        //axiomsTableModel.addTableModelListener(ev -> analyze());
         SwingObservable.actions(openButton)
                 .toFlowable(BackpressureStrategy.BUFFER)
                 .doOnNext(this::handleOpen)
@@ -197,11 +202,13 @@ public class Main {
     /**
      * Handles axioms changed
      *
-     * @param tableModelEvent the event
+     * @param axioms the axioms
      */
-    private void handleAxiomsChanged(TableModelEvent tableModelEvent) {
-        axiomsTableModel.getPredicates().forEach(t -> evidences.put(t._1, t._2));
-        analyze();
+    private void handleAxiomsChanged(List<AxiomStatus> axioms) {
+        if (evidences != null) {
+            axioms.forEach(predicate -> evidences.put(predicate.getId(), predicate.getTruth()));
+            analyze();
+        }
     }
 
     /**
@@ -210,9 +217,12 @@ public class Main {
      * @param actionEvent the event
      */
     private void handleClear(ActionEvent actionEvent) {
-        evidences = model.createUnknownAxioms();
-        analyze();
+        if (model != null) {
+            evidences = model.createUnknownAxioms();
+            analyze();
+        }
     }
+
 
     /**
      * Handles the open events
@@ -226,7 +236,7 @@ public class Main {
                 alert(MAIN_FILE_CANNOT_BE_READ_ERROR, file);
             } else {
                 try {
-                    setModel(Model.fromFile(file));
+                    setDefinitions(Definitions.fromFile(file));
                 } catch (Exception e) {
                     alertError(MAIN_OPENING_ERROR, e);
                 }
@@ -248,12 +258,11 @@ public class Main {
 
         createFrameContent();
 
-        axiomsTableModel.setEditable(true);
-
         fileChooser.setFileFilter(new FileNameExtensionFilter(Messages
                 .getString("Main.fileType.label"), "yml", "yaml"));
 
-        frame.setSize(640, 480);
+        frame.setSize(Messages.getInt("Frame.width", FRAME_WIDTH),
+                Messages.getInt("Frame.height", FRAME_HEIGHT));
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
@@ -266,15 +275,50 @@ public class Main {
         logger.atDebug().log("Main started");
         frame.setVisible(true);
         try {
-            Model model = args.length > 0
-                    ? Model.fromUrl(args[0])
-                    : Model.fromResource(DEFAULT_RULES_YAML);
-            setModel(model);
+            Definitions definitions = args.length > 0
+                    ? Definitions.fromUrl(args[0])
+                    : Definitions.fromResource(DEFAULT_RULES_YAML);
+            setDefinitions(definitions);
         } catch (Exception e) {
             alertError(MAIN_INIT_ERROR, e);
         }
         verticalPane.setDividerLocation(0.5);
         hsp.setDividerLocation(0.5);
+    }
+
+    /**
+     * Sets the definitions
+     *
+     * @param definitions the definitions
+     */
+    private void setDefinitions(Definitions definitions) {
+        setModel(definitions.getModel());
+        Properties mapper = new Properties();
+        if (definitions.getLanguages().containsKey("default")) {
+            mapper.putAll(definitions.getLanguages().get("default"));
+        }
+        String language = Locale.getDefault().getLanguage();
+        if (definitions.getLanguages().containsKey(language)) {
+            mapper.putAll(definitions.getLanguages().get(language));
+        }
+        hypothesisTableModel.setMapper(mapper);
+        inferencesTableModel.setMapper(mapper);
+        axiomsTableModel.setMapper(mapper);
+    }
+
+    private void setEvidences(Map<String, Double> evidences) {
+        this.evidences = evidences;
+        hypothesisTableModel.setPredicates(model.getHypothesis(evidences));
+        inferencesTableModel.setPredicates(
+                model.getInferences(evidences).stream()
+                        .filter(p -> p.getTruth() != UNKNOWN_VALUE)
+                        .collect(Collectors.toList()));
+        List<AxiomStatus> axioms = model.getAxioms(evidences);
+        List<AxiomStatus> filtered = zipWithIndex(axioms)
+                .filter(t -> t._2.getTruth() != UNKNOWN_VALUE || t._1 == 0)
+                .map(Tuple2::getV2)
+                .collect(Collectors.toList());
+        axiomsTableModel.setPredicates(filtered);
     }
 
     /**
@@ -284,9 +328,6 @@ public class Main {
      */
     private void setModel(Model model) {
         this.model = model;
-        this.evidences = model.infer(model.createUnknownAxioms());
-        hypothesisTableModel.setPredicates(evidences.getHypothesisList());
-        inferencesTableModel.setPredicates(evidences.getInferencesList());
-        axiomsTableModel.setPredicates(evidences.getAxiomsList());
+        setEvidences(model.infer(model.createUnknownAxioms()));
     }
 }

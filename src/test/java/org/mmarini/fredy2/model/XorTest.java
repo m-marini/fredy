@@ -27,71 +27,79 @@
 
 package org.mmarini.fredy2.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.mmarini.yaml.schema.Locator;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mmarini.TestFunctions.text;
-import static org.mmarini.yaml.Utils.fromText;
-import static org.mockito.Mockito.mock;
 
-class NotTest implements TestUtils {
+class XorTest implements TestUtils {
 
     @Test
     void createDependencies() {
         // Given ...
-        Not p = new Not(new Predicate("a"));
+        Xor p = Xor.create(
+                new Predicate("a"),
+                new Predicate("b"),
+                new Predicate("a")
+        );
 
         // When ...
-        Collection<String> deps = p.getDependencies().collect(Collectors.toList());
+        List<String> deps = p.getDependencies().collect(Collectors.toList());
 
         // Then ...
-        assertThat(deps, containsInAnyOrder("a"));
+        assertThat(deps, containsInAnyOrder("a", "b"));
     }
 
     @ParameterizedTest
-    @MethodSource("singleValues")
-    void evaluate(double a) {
+    @CsvSource({
+            "   0,    0,    0",
+            "   0, 0.25, 0.25",
+            "   0,  0.5,  0.5",
+            "   0, 0.75, 0.75",
+            "   0,    1,    1",
+            "0.25,    0, 0.25",
+            "0.25, 0.25, 0.25",
+            "0.25,  0.5,  0.5",
+            "0.25, 0.75, 0.75",
+            "0.25,    1, 0.75",
+            " 0.5,    0,  0.5",
+            " 0.5, 0.25,  0.5",
+            " 0.5,  0.5,  0.5",
+            " 0.5, 0.75,  0.5",
+            " 0.5,    1,  0.5",
+            "0.75,    0, 0.75",
+            "0.75, 0.25, 0.75",
+            "0.75,  0.5,  0.5",
+            "0.75, 0.75, 0.25",
+            "0.75,    1, 0.25",
+            "   1,    0,    1",
+            "   1, 0.25, 0.75",
+            "   1,  0.5,  0.5",
+            "   1, 0.75, 0.25",
+            "   1,    1,    0",
+    })
+    void evaluate(double a, double b, double expected) {
         // Given ...
-        Not p = new Not(new Predicate("a"));
+        Xor p = Xor.create(
+                new Predicate("a"),
+                new Predicate("b"));
 
-        Model model = mock(Model.class);
+        Model model = Mockito.mock(Model.class);
 
-        Map<String, Double> evidences = Map.of("a", a);
+        Map<String, Double> evidences = Map.of("a", a, "b", b);
 
         // When ...
         double value = p.evaluate(model, evidences);
 
         // Then ...
-        assertEquals(1 - a, value);
-    }
-
-    @Test
-    void fromJson() throws IOException {
-        // Given ...
-        JsonNode node = fromText(text(
-                "---",
-                "expression:",
-                "  type: predicate",
-                "  id: a"
-        ));
-
-        // When ...
-        Not p = Not.fromJson(node, Locator.root());
-
-        // Then ...
-        assertThat(p, hasToString(
-                matchesPattern("not\\('a'\\)")
-        ));
+        assertEquals(expected, value);
     }
 }

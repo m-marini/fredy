@@ -33,7 +33,7 @@ import org.mmarini.yaml.schema.Validator;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
@@ -70,14 +70,14 @@ public class Somewhat implements InferenceNode {
     }
 
     @Override
-    public void createDependencies(Set<String> dependencies) {
-        expression.createDependencies(dependencies);
+    public double evaluate(Model model, Map<String, Double> evidences) {
+        double value = expression.evaluate(model, evidences);
+        return Math.sqrt(value);
     }
 
     @Override
-    public double evaluate(Model model, Evidences evidences) {
-        double value = expression.evaluate(model, evidences);
-        return Math.sqrt(value);
+    public Stream<String> getDependencies() {
+        return expression.getDependencies();
     }
 
     @Override

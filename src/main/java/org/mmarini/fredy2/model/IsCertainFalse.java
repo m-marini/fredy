@@ -35,13 +35,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.lang.Math.max;
 import static java.util.Objects.requireNonNull;
 import static org.mmarini.yaml.schema.Validator.objectPropertiesRequired;
 
 /**
  * Gets the negation of expression
  */
-public class Not implements InferenceNode {
+public class IsCertainFalse implements InferenceNode {
     public static final Validator JSON_SPEC = objectPropertiesRequired(Map.of(
                     "expression", InferenceNode.JSON_SPEC),
             List.of("expression")
@@ -53,9 +54,9 @@ public class Not implements InferenceNode {
      * @param root    the document root
      * @param locator the locator
      */
-    public static Not fromJson(JsonNode root, Locator locator) {
+    public static IsCertainFalse fromJson(JsonNode root, Locator locator) {
         JSON_SPEC.apply(locator).accept(root);
-        return new Not(InferenceNode.fromJson(root, locator.path("expression")));
+        return new IsCertainFalse(InferenceNode.fromJson(root, locator.path("expression")));
     }
 
     private final InferenceNode expression;
@@ -65,13 +66,14 @@ public class Not implements InferenceNode {
      *
      * @param expression the expression
      */
-    public Not(InferenceNode expression) {
+    public IsCertainFalse(InferenceNode expression) {
         this.expression = requireNonNull(expression);
     }
 
     @Override
     public double evaluate(Model model, Map<String, Double> evidences) {
-        return 1 - expression.evaluate(model, evidences);
+        double y = expression.evaluate(model, evidences);
+        return max(0, 1 - 2 * y);
     }
 
     @Override
@@ -81,6 +83,6 @@ public class Not implements InferenceNode {
 
     @Override
     public String toString() {
-        return "not(" + expression + ")";
+        return "isCertainFalse(" + expression + ")";
     }
 }
