@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased] yyyy-mm-dd
 
+## [2.1.1] 2023-09-01
+
+### Changed
+
+- Issue #13: Change the colors
+
 ## [2.1.0] 2023-09-01
 
 ### Changed

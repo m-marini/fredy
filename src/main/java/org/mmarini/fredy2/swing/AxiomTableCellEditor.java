@@ -53,7 +53,7 @@ public class AxiomTableCellEditor extends DefaultCellEditor {
                 break;
             }
         }
-        Color c = FuzzyTableCellRenderer.getColor(AxiomTableModel.TRUTH_VALUES_BY_COLUMN[selectedCol]);
+        Color c = FuzzyTableCellRenderer.getBackgroundColor(AxiomTableModel.TRUTH_VALUES_BY_COLUMN[selectedCol]);
         Component r = super.getTableCellEditorComponent(table, value,
                 isSelected, row, column);
         r.setBackground(c);

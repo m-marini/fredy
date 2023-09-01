@@ -19,12 +19,19 @@ public class FuzzyTableCellRenderer extends DefaultTableCellRenderer {
     public static final String QUITE_TRUE_ID = "quite.true";
     public static final String TRUE_ID = "true";
     public static final FuzzyTableCellRenderer FUZZY_TABLE_CELL_RENDERER = new FuzzyTableCellRenderer();
-    private static final Color[] COLORS = new Color[]{
-            new Color(0xFFCCCC),
-            new Color(0xFFEEEE),
-            new Color(0xF8F8F8),
-            new Color(0xeeffee),
-            new Color(0xCCFFCC)
+    private static final Color[] BG_COLORS = new Color[]{
+            new Color(0xdc3545),
+            new Color(0xffc107),
+            new Color(0xf8f9fa),
+            new Color(0x0dcaf0),
+            new Color(0x198754)
+    };
+    private static final Color[] FG_COLORS = new Color[]{
+            Color.WHITE,
+            Color.BLACK,
+            Color.BLACK,
+            Color.BLACK,
+            Color.WHITE
     };
     private static final String[] IDENTIFIERS = new String[]{
             FALSE_ID,
@@ -39,8 +46,17 @@ public class FuzzyTableCellRenderer extends DefaultTableCellRenderer {
      *
      * @param value the fuzzy value
      */
-    public static Color getColor(double value) {
-        return COLORS[getFuzzyIndex(value)];
+    public static Color getBackgroundColor(double value) {
+        return BG_COLORS[getFuzzyIndex(value)];
+    }
+
+    /**
+     * Returns the foreground color by value
+     *
+     * @param value the fuzzy value
+     */
+    public static Color getForegroundColor(double value) {
+        return FG_COLORS[getFuzzyIndex(value)];
     }
 
     /**
@@ -69,8 +85,8 @@ public class FuzzyTableCellRenderer extends DefaultTableCellRenderer {
      * @param value the value
      */
     public static int getFuzzyIndex(double value) {
-        int idx = (int) round(value * (COLORS.length - 1));
-        return min(max(0, idx), COLORS.length - 1);
+        int idx = (int) round(value * (BG_COLORS.length - 1));
+        return min(max(0, idx), BG_COLORS.length - 1);
     }
 
     /**
@@ -85,11 +101,12 @@ public class FuzzyTableCellRenderer extends DefaultTableCellRenderer {
         if (value instanceof Double) {
             value = getFuzzyDescription((Double) value);
         }
-        Color c = getColor((Double) table.getValueAt(row, 1));
+        Color bg = getBackgroundColor((Double) table.getValueAt(row, 1));
+        Color fg = getForegroundColor((Double) table.getValueAt(row, 1));
         Component r = super.getTableCellRendererComponent(table, value,
                 isSelected, hasCellFocus, row, column);
-        r.setBackground(c);
-        r.setBackground(c);
+        r.setBackground(bg);
+        r.setForeground(fg);
         return r;
     }
 
